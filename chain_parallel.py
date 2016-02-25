@@ -25,7 +25,7 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 plotting_mode = 2
 chain_length = 2
 
-capacitive_strength = 00.
+capacitive_strength = 00.5
 tunnel_strength = 0.5
 epsilon_gap = .15
 

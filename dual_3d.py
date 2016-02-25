@@ -3,6 +3,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 from igf import *
 import sys as sys
+#Command line arguments.
+import argparse as argparse  
 #3d surf plot
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -23,7 +25,22 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 # Normally I use argparse for this, but due to sverely limited computational 
 #   resources, i.e. a computer that should've been retired years ago, I a
 #   working online (Get Data Joy) and can't use commandline arguments.   
-plotting_mode = 0
+plotting_mode = 2
+
+parser	= argparse.ArgumentParser(prog="N-chain",
+  description = "Calculates tranmission or spectral function through a chain of N elements.")  
+  
+parser.add_argument(
+    '-m',
+    '--mode',
+    help='Plotting Mode. Zero is transmission, 1 spectral, 2 saves transmission to a svg, 3 does the same for spectral.',
+    action='store',
+    type = int,
+    default = plotting_mode
+)   
+args	= parser.parse_args() 
+
+plotting_mode = args.mode
 
 clip_size = 25.00
 
@@ -70,7 +87,7 @@ for capacitive_strength in np.linspace(0,1,resolution):
     )
     
     epsilon = np.linspace(epsilon_left, epsilon_right,resolution)
-    if plotting_mode == 0:
+    if plotting_mode == 0 or plotting_mode == 2:
         
         #It is unfeasible to plot all the channels. Sum them up!
         
@@ -82,7 +99,7 @@ for capacitive_strength in np.linspace(0,1,resolution):
         data_epsilon.extend(epsilon)
         data_capacitive.extend(capacitive_strength + epsilon*0)
         data_z.extend(transmission) 
-    elif plotting_mode == 1:
+    elif plotting_mode == 1 or plotting_mode == 3:
         
         
         spectral = calculation.spectral_channel(0, epsilon)
@@ -114,9 +131,9 @@ fig, ax = plt.subplots(figsize=(25, 15), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
 
-if plotting_mode == 0:
+if plotting_mode == 0 or plotting_mode == 2:
     mesh_transmission = np.clip(mesh_transmission, 0, clip_size)
-elif plotting_mode == 1:
+elif plotting_mode == 1 or plotting_mode == 3:
     mesh_transmission = np.clip(mesh_transmission, 0, clip_size)
 
 cmap = plt.get_cmap('afmhot') 
@@ -135,15 +152,18 @@ ax.set_xlabel( "Energy $\\epsilon$" ,fontsize=30);
 ax.set_ylabel( "Capacitive Interaction Strength $U$",fontsize=30); 
 
 title = ""
-if plotting_mode == 0:
+if plotting_mode == 0 or plotting_mode == 2:
     title = "WBL Transmission, Dual, "
-elif plotting_mode == 1:
+elif plotting_mode == 1 or plotting_mode == 3:
     title = "WBL Spectral, Dual, " 
 
 plt.title( " %s: $\\beta=%.3f$, $\\epsilon_0=%.3f$, $\\Gamma=%.3f$, $\\tau=%.3f$" % (title, calculation.beta,
     epsilon_gap, gamma_strength, tunnel_strength), fontsize=15)
 
-plt.show() 
+if plotting_mode == 2 or plotting_mode == 3:
+    plt.savefig('dual_3d.svg')
+else:    
+    plt.show()
 
 
 global_time_end = time.time ()
