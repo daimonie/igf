@@ -1,7 +1,5 @@
 #Numeric Python. Should be familiar.
 import numpy as np
-#Parallel processes!
-import multiprocessing as mp
 #Plotting tools
 import matplotlib
 import matplotlib.pyplot as plt
@@ -22,11 +20,11 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 # Normally I use argparse for this, but due to sverely limited computational 
 #   resources, i.e. a computer that should've been retired years ago, I a
 #   working online (Get Data Joy) and can't use commandline arguments.   
-plotting_mode = 2
-chain_length = 2
+plotting_mode = 0
+chain_length = 7
 
-capacitive_strength = 00.5
-tunnel_strength = 0.5
+capacitive_strength = .6
+tunnel_strength = -0.9
 epsilon_gap = .15
 
 epsilon_left = -5.0
@@ -34,7 +32,7 @@ epsilon_right = 5.0
 resolution = 100
 
 parser	= argparse.ArgumentParser(prog="N-chain",
-  description = "Calculates tranmission or spectral function through a chain of N elements.")  
+  description = "Calculates eigenvalues of a chain of length N.")  
   
 parser.add_argument(
     '-m',
@@ -140,95 +138,22 @@ param_gamma_right[epsilon_gap][epsilon_gap] = gamma_strength;
 
 #Inverse temperature (units same as the others)
 param_beta = 0.05 * 50
+ 
+non_int = param_epsilon + param_tau
 
-calculation = igfwl(
-    param_epsilon, 
-    param_tau,
-    param_u, 
-    param_gamma_left,
-    param_gamma_right, 
-    param_beta
-)
+values,_ = np.linalg.eig(non_int)
 
-epsilon = np.linspace(epsilon_left, epsilon_right, resolution)
-
-plt.figure(figsize=(10, 10), dpi=1080)
-plt.xticks(fontsize=30)
-plt.yticks(fontsize=30)
-
-title = "Dummy title"
-xlabel = ""
-ylabel = ""
-plt.rc('font', family='serif')
-
+height = values*0
 if plotting_mode == 0 or plotting_mode == 2:
-    
-    #It is unfeasible to plot all the channels. Sum them up!
-    
-    transmission = calculation.transport_channel(0, epsilon)
-    
-    #for i in calculation.generate_superset(0):
-    #   transmission += calculation.transport_channel(i, epsilon)
-    
-    chances = calculation.distribution ()
-    
-    ##generators = [(parallel_pool.apply(calculation.transport_channel_ij, args=(i, chances, epsilon,)) for i in calculation.generate_superset(k)) for k in calculation.generate_superset(0)]
-    
-    def task(i):
-        global calculation, chances, epsilon
-        
-        task_result = calculation.transport_channel_ij(i,chances, epsilon) 
-        return task_result
-    
-    parallel_pool = mp.Pool() #automatically uses all cores 
-    results = [ [parallel_pool.apply(task, args=(i,)) for i in calculation.generate_superset(k)] for k in calculation.generate_superset(0)]
-    
-    results = np.array(results)
-
-    transmission = np.sum(results,axis=0)
-    transmission = np.sum(transmission,axis=0)
-    print transmission.shape
-    
-    plt.plot(epsilon, transmission, 'g-', label="sum")  
-    plt.xlabel("energy")
-    plt.ylabel("Transmission")
-    
-    maximum = 0.02
-    if np.max(transmission) > maximum:
-        maximum = np.max(transmission)*1.25
-    
-    plt.ylim([0, maximum])
-    
-    title = "Chain Transmission"
-    xlabel = "Energy $\\epsilon$"
-    ylabel = "Transmission"
-    
+    height += 1
 elif plotting_mode == 1 or plotting_mode == 3:
-    
-    
-    spectral = calculation.spectral_channel(0, epsilon)
-    
-    for i in calculation.generate_superset(0):
-        spectral += calculation.spectral_channel(i, epsilon)
-    
-    plt.plot(epsilon, spectral, 'g-', label="sum")  
-    
-    
-    title = "Chain Spectral"
-    xlabel = "Energy $\\epsilon$"
-    ylabel = "Spectral"
+    height += 1
 
-plt.xlabel(xlabel, fontsize=30)
-plt.ylabel(ylabel, fontsize=30)
+plt.plot(values, height, 'ko') 
 
-plt.title( "%d-%s: $\\beta=%.3f$, $\\epsilon_0=%.3f$, $\\Gamma=%.3f$, $\\tau=%.3f$ , $U=%.3f$" % (chain_length, title, calculation.beta,
-    epsilon_gap, gamma_strength, tunnel_strength, capacitive_strength), fontsize=15)     
-plt.legend()
-
-if plotting_mode == 2 or plotting_mode == 3:
-    plt.savefig('chain.svg')
-else:    
-    plt.show()
+plt.xlim([epsilon_left, epsilon_right])
+plt.ylim([0, 2])
+plt.show()
 
 global_time_end = time.time ()
 
