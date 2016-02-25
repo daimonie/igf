@@ -186,8 +186,7 @@ if plotting_mode == 0 or plotting_mode == 2:
     results = np.array(results)
 
     transmission = np.sum(results,axis=0)
-    transmission = np.sum(transmission,axis=0)
-    print transmission.shape
+    transmission = np.sum(transmission,axis=0) 
     
     plt.plot(epsilon, transmission, 'g-', label="sum")  
     plt.xlabel("energy")
