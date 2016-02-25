@@ -16,7 +16,7 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 #   resources, i.e. a computer that should've been retired years ago, I a
 #   working online (Get Data Joy) and can't use commandline arguments.   
 plotting_mode = 2
-chain_length = 3
+chain_length = 4
 
 dot_levels = 2* chain_length #All at the same energy; this is a chain.
 
