@@ -8,15 +8,11 @@ global_time_start = time.time()
 #two level system, to start with
 #this is the simplest couloumb-blockade system around
 
-#units are arbitrary. 
-print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version_info[0],sys.version_info[1],sys.version_info[2])
-
-
 # Normally I use argparse for this, but due to sverely limited computational 
 #   resources, i.e. a computer that should've been retired years ago, I a
 #   working online (Get Data Joy) and can't use commandline arguments.   
 plotting_mode = 2
-chain_length = 4
+chain_length = 7
 
 dot_levels = 2* chain_length #All at the same energy; this is a chain.
 
