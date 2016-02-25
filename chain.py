@@ -12,13 +12,20 @@ global_time_start = time.time()
 #   resources, i.e. a computer that should've been retired years ago, I a
 #   working online (Get Data Joy) and can't use commandline arguments.   
 plotting_mode = 2
-chain_length = 7
+chain_length = 4
 
 dot_levels = 2* chain_length #All at the same energy; this is a chain.
 
 capacitive_strength = 00.
 tunnel_strength = 0.5
 epsilon_gap = .15
+epsilon_left = -5.0
+epsilon_right = 5.0
+resolution = 100
+gamma_strength = 0.05 
+param_beta = 0.05 * 50
+
+
 
 param_u = np.zeros((dot_levels, dot_levels))
 param_tau = np.zeros((dot_levels, dot_levels))
@@ -42,22 +49,16 @@ for i in range(0, dot_levels):
 print param_tau
 print param_u
 param_epsilon = np.diag( np.ones((dot_levels)))
-epsilon_left = -5.0
-epsilon_right = 5.0
-resolution = 100
 
 #This makes coupling to the leads
 #comparable to the coupling between levels. 
-gamma_strength = 0.05 
 
 param_gamma_left = np.zeros((dot_levels,dot_levels))
 param_gamma_right = np.zeros((dot_levels,dot_levels))
 
 param_gamma_left[0][0] = gamma_strength;
 param_gamma_right[epsilon_gap][epsilon_gap] = gamma_strength;
-
-#Inverse temperature (units same as the others)
-param_beta = 0.05 * 50
+ 
 
 calculation = igfwl(
     param_epsilon, 
@@ -125,8 +126,8 @@ plt.legend()
 
 if plotting_mode == 2 or plotting_mode == 3:
     plt.savefig('chain.svg')
-    
-plt.show()
+else:    
+    plt.show()
 
 global_time_end = time.time ()
 
