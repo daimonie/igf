@@ -83,6 +83,16 @@ class igfwl(object):
         probability /= probability.sum()
         
         return probability
+    
+    def transport_channel_ij(self, i, chances, epsilon):
+        state = self.ket( i ) 
+        chance = chances[i]  
+        ret_gf, ad_gf = self.singleparticlebackground( state ) 
+            
+    
+        transport_k_ij = [np.trace(chance**2 *np.dot(self.gamma_left, ( np.dot(
+            ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon]
+        return transport_k_ij
     def transport_channel(self, k, epsilon):
         """Returns the transmission function for the many body state k."""
         advanced_gf = np.zeros((self.dim, self.dim))
@@ -91,16 +101,8 @@ class igfwl(object):
         transport_k = 0 * epsilon
         
         chances = self.distribution()
-        
         for i in self.generate_superset(k):
-                state = self.ket( i ) 
-                chance = chances[i]  
-                ret_gf, ad_gf = self.singleparticlebackground( state ) 
-                   
-            
-                transport_k_ij = [np.trace(chance**2 *np.dot(self.gamma_left, ( np.dot(
-                    ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon]
-                transport_k += np.real(transport_k_ij)
+                transport_k += np.real( self.transport_channel_ij(i, chances, epsilon))
         return transport_k
     def spectral_channel(self, k, epsilon):
         """Returns the transmission function for the many body state k."""

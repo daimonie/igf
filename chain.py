@@ -12,8 +12,8 @@ import argparse as argparse
 #Time, because I want to see the total calculation time in ms.
 import time
 #Start the clock.
-
 global_time_start = time.time()
+print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version_info[0],sys.version_info[1],sys.version_info[2])
 #two level system, to start with
 #this is the simplest couloumb-blockade system around
 
@@ -149,6 +149,7 @@ calculation = igfwl(
 )
 
 epsilon = np.linspace(epsilon_left, epsilon_right, resolution)
+
 plt.figure(figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
