@@ -1,5 +1,4 @@
 import numpy as np
-from numba import jit
 
 class igfwl(object): 
     """The igfwl class will compute the transport function using the many-body interacting Green's function in the wide-band limit."""
@@ -25,9 +24,6 @@ class igfwl(object):
             
             self.beta = param_beta
             
-    # jit decorator tells Numba to compile this function.
-    # The argument types will be inferred by Numba when function is called.
-    @jit     
     def singleparticlebackground(self, background):
         """This gives us the single-particle Green's function with some background."""
         
@@ -36,10 +32,7 @@ class igfwl(object):
         single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)
         single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)
         
-        return single_retarded, single_advanced    
-    # jit decorator tells Numba to compile this function.
-    # The argument types will be inferred by Numba when function is called.
-    @jit     
+        return single_retarded, single_advanced
     def generate_superset(self, number):
         """ This function returns a list of the integers that are in the superset of k. The reason this is a seperate function is because I think this algorithm can be a lot smoother/faster."""
         
@@ -49,10 +42,7 @@ class igfwl(object):
             #if  i != number and (number & i)==number:
             if  (number & i)==number:
                 superset.append(i)
-        return superset    
-    # jit decorator tells Numba to compile this function.
-    # The argument types will be inferred by Numba when function is called.
-    @jit     
+        return superset
     def number(self, ket):
         """Returns the number of the ket"""
         
@@ -63,18 +53,12 @@ class igfwl(object):
                 final += 2**q
             q += 1
             
-        return final    
-    # jit decorator tells Numba to compile this function.
-    # The argument types will be inferred by Numba when function is called.
-    @jit     
+        return final
     def ket(self, number):
         """Turns an integer number into a ket."""
         
         final_ket = np.array( [(2**i==number&2**i)*1.0 for i in range(0,self.dim)] )
-        return final_ket     
-    # jit decorator tells Numba to compile this function.
-    # The argument types will be inferred by Numba when function is called.
-    @jit     
+        return final_ket 
     def distribution(self):
         """Sets the boltzmann distribution function and generates the density-matrix."""
         
@@ -98,10 +82,7 @@ class igfwl(object):
         probability = np.exp( np.multiply(-self.beta, energy_vector))
         probability /= probability.sum()
         
-        return probability    
-    # jit decorator tells Numba to compile this function.
-    # The argument types will be inferred by Numba when function is called.
-    @jit     
+        return probability
     def transport_channel(self, k, epsilon):
         """Returns the transmission function for the many body state k."""
         advanced_gf = np.zeros((self.dim, self.dim))
@@ -120,10 +101,7 @@ class igfwl(object):
                 transport_k_ij = [np.trace(chance**2 *np.dot(self.gamma_left, ( np.dot(
                     ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon]
                 transport_k += np.real(transport_k_ij)
-        return transport_k    
-    # jit decorator tells Numba to compile this function.
-    # The argument types will be inferred by Numba when function is called.
-    @jit     
+        return transport_k
     def spectral_channel(self, k, epsilon):
         """Returns the transmission function for the many body state k."""
         advanced_gf = np.zeros((self.dim, self.dim))
