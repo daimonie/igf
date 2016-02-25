@@ -27,6 +27,10 @@ capacitive_strength = 00.
 tunnel_strength = 0.5
 epsilon_gap = .15
 
+epsilon_left = -5.0
+epsilon_right = 5.0
+resolution = 100
+
 parser	= argparse.ArgumentParser(prog="N-chain",
   description = "Calculates tranmission or spectral function through a chain of N elements.")  
   
@@ -41,31 +45,53 @@ parser.add_argument(
 parser.add_argument(
     '-n',
     '--chain',
-    help='Plotting Mode. Zero is transmission, 1 spectral, 2 saves transmission to a svg, 3 does the same for spectral.',
+    help='Number of elements in the chain.',
     action='store',
     type = int,
     default = chain_length
 )   
+parser.add_argument(
+    '-r',
+    '--res',
+    help='Resolution (number of horizontal data points)',
+    action='store',
+    type = int,
+    default = resolution
+)   
 parser.add_argument( 
     '--cstr',
-    help='Plotting Mode. Zero is transmission, 1 spectral, 2 saves transmission to a svg, 3 does the same for spectral.',
+    help='Interaction Strength U',
     action='store',
     type = float,
     default = capacitive_strength
 )   
 parser.add_argument( 
     '--tstr',
-    help='Plotting Mode. Zero is transmission, 1 spectral, 2 saves transmission to a svg, 3 does the same for spectral.',
+    help='Tunnel strength (between elements)',
     action='store',
     type = float,
     default = tunnel_strength
 )   
 parser.add_argument( 
     '--eps',
-    help='Plotting Mode. Zero is transmission, 1 spectral, 2 saves transmission to a svg, 3 does the same for spectral.',
+    help='Epsilon Gap',
     action='store',
     type = float,
     default = epsilon_gap
+)   
+parser.add_argument( 
+    '--el',
+    help='Minimum energy epsilon.',
+    action='store',
+    type = float,
+    default = epsilon_left
+)   
+parser.add_argument( 
+    '--er',
+    help='Maximum energy epsilon.',
+    action='store',
+    type = float,
+    default = epsilon_right
 )   
 args	= parser.parse_args() 
 
@@ -74,6 +100,9 @@ chain_length = args.chain
 capacitive_strength = args.cstr
 tunnel_strength = args.tstr
 epsilon_gap = args.eps
+epsilon_left = args.el
+epsilon_right = args.er
+resolution = args.res
 
 dot_levels = 2* chain_length #All at the same energy; this is a chain.
 
@@ -94,14 +123,8 @@ for i in range(0, dot_levels):
         for dl in range(0,2):
             for dr in range(0,2):
                 param_tau[l+dl][r+dr] = tunnel_strength;
-                param_tau[r+dr][l+dl] = tunnel_strength;
-
-print param_tau
-print param_u
+                param_tau[r+dr][l+dl] = tunnel_strength; 
 param_epsilon = np.diag( np.ones((dot_levels)))
-epsilon_left = -5.0
-epsilon_right = 5.0
-resolution = 100
 
 #This makes coupling to the leads
 #comparable to the coupling between levels. 
