@@ -22,16 +22,16 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 # Normally I use argparse for this, but due to sverely limited computational 
 #   resources, i.e. a computer that should've been retired years ago, I a
 #   working online (Get Data Joy) and can't use commandline arguments.   
-plotting_mode = 2
+plotting_mode = 0
 chain_length = 2
 
-capacitive_strength = 00.5
+capacitive_strength = 0.5
 tunnel_strength = 0.5
 epsilon_gap = .15
 
 epsilon_left = -5.0
 epsilon_right = 5.0
-resolution = 100
+resolution = 200
 
 parser	= argparse.ArgumentParser(prog="N-chain",
   description = "Calculates tranmission or spectral function through a chain of N elements.")  
@@ -223,6 +223,19 @@ plt.ylabel(ylabel, fontsize=30)
 plt.title( "%d-%s: $\\beta=%.3f$, $\\epsilon_0=%.3f$, $\\Gamma=%.3f$, $\\tau=%.3f$ , $U=%.3f$" % (chain_length, title, calculation.beta,
     epsilon_gap, gamma_strength, tunnel_strength, capacitive_strength), fontsize=15)     
 plt.legend()
+
+non_int = param_epsilon + param_tau
+
+values,_ = np.linalg.eig(non_int)
+print values
+
+height = values*0
+if plotting_mode == 0 or plotting_mode == 2:
+    height += np.average(transmission)
+elif plotting_mode == 1 or plotting_mode == 3:
+    height += np.average(spectral)
+
+plt.plot(values, height, 'ko') 
 
 if plotting_mode == 2 or plotting_mode == 3:
     plt.savefig('chain.svg')

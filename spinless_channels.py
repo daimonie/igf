@@ -3,6 +3,10 @@ import numpy as np
 #Plotting tools
 import matplotlib
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.collections import PolyCollection
+from matplotlib.colors import colorConverter
+from matplotlib import cm 
 #Our calculation module
 from igf import *
 #sys. sys.stderr is a nice text stream.
@@ -18,21 +22,21 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 #this is the simplest couloumb-blockade system around
 
 # Normally I use argparse for this, but due to sverely limited computational 
-#   resources, i.e. a computer that should've been retired years ago, I a
+#   resources, i.e. a computer that should've been retired years ago, I am
 #   working online (Get Data Joy) and can't use commandline arguments.   
-plotting_mode = 0
-chain_length = 2
+plotting_mode = 2
+chain_length = 3
 
-capacitive_strength = 0.05 * 50
+capacitive_strength = 0.35
 tunnel_strength = 0.5
-epsilon_gap = 0.15
+epsilon_gap = -capacitive_strength/2.0# - capacitive_strength
 
-epsilon_left = -5.0
-epsilon_right = 5.0
-resolution = 1000
+epsilon_left = -.5
+epsilon_right = 2.5
+resolution = 10000
 
 #Inverse temperature (units same as the others)
-param_beta = 0.05 * 250
+param_beta = 0.05 * 25
 
 parser	= argparse.ArgumentParser(prog="N-chain",
   description = "Calculates tranmission or spectral function through a chain of N elements.")  
@@ -116,26 +120,23 @@ epsilon_left = args.el
 epsilon_right = args.er
 resolution = args.res
 
-dot_levels = 2* chain_length #All at the same energy; this is a chain.
+dot_levels = chain_length #All at the same energy; this is a chain.
 
 param_u = np.zeros((dot_levels, dot_levels))
 param_tau = np.zeros((dot_levels, dot_levels))
 
-for i in range(0, dot_levels):
-    if i%2==0:
+
+for i in range(0, dot_levels): 
+    if i + 1 < chain_length:
         l = i
-        r = l + 1
-        
-        param_u[l][r] = capacitive_strength;
-        param_u[r][l] = capacitive_strength;
-        
-    if i%2==0 and i/2 < chain_length-1:
-        l = i
-        r = i+2
-        for dl in range(0,2):
-            for dr in range(0,2):
+        r = i+1
+        for dl in range(0,1):
+            for dr in range(0,1):
                 param_tau[l+dl][r+dr] = tunnel_strength;
                 param_tau[r+dr][l+dl] = tunnel_strength; 
+                param_u[l+dl][r+dr] = capacitive_strength;
+                param_u[r+dr][l+dl] = capacitive_strength; 
+
 param_epsilon = np.diag( np.ones((dot_levels)))
 #This makes coupling to the leads
 #comparable to the coupling between levels. 
@@ -146,7 +147,7 @@ param_gamma_right = np.zeros((dot_levels,dot_levels))
 
 param_gamma_left[0][0] = gamma_strength;
 param_gamma_right[epsilon_gap][epsilon_gap] = gamma_strength;
-
+ 
 
 calculation = igfwl(
     param_epsilon, 
@@ -156,83 +157,77 @@ calculation = igfwl(
     param_gamma_right, 
     param_beta
 )
-
+  
 epsilon = np.linspace(epsilon_left, epsilon_right, resolution)
 
-plt.figure(figsize=(10, 10), dpi=1080)
-plt.xticks(fontsize=30)
-plt.yticks(fontsize=30)
+maximum = 0.02
+superset = calculation.generate_superset(0)
 
-title = "Dummy title"
-xlabel = ""
-ylabel = ""
-plt.rc('font', family='serif')
 
+def colour (number):
+    global superset;
+    return cm.afmhot( number** 2 *1.0/ 3 / len(superset))
+
+z_indices = range(0, len(superset))
+xy_vertices = []
+colours = []
 if plotting_mode == 0 or plotting_mode == 2:
     
-    #It is unfeasible to plot all the channels. Sum them up!
+    for i in superset:
+        channel = calculation.transport_channel(i, epsilon)
+        xy_vertices.append(list(zip(epsilon, channel))) 
+        
+        colours.append(colour(i))
     
-    transmission = calculation.transport_channel(0, epsilon)
+        if np.max(channel) > maximum:
+            maximum = np.max(channel)
     
-    for i in calculation.generate_superset(0):
-        transmission += calculation.transport_channel(i, epsilon)
-    
-    plt.plot(epsilon, transmission, 'g-', label="sum")  
-    plt.xlabel("energy")
-    plt.ylabel("Transmission")
-    
-    maximum = 0.02
-    if np.max(transmission) > maximum:
-        maximum = np.max(transmission)*1.25
-    
-    plt.ylim([0, maximum])
     
     title = "Chain Transmission"
     xlabel = "Energy $\\epsilon$"
-    ylabel = "Transmission"
-    
+    ylabel = "Transmission $T(\\epsilon)$"
 elif plotting_mode == 1 or plotting_mode == 3:
     
+    maximum = 1.2
     
-    spectral = calculation.spectral_channel(0, epsilon)
+    spectral = epsilon*0 
     
-    for i in calculation.generate_superset(0):
-        spectral += calculation.spectral_channel(i, epsilon)
-    
-    plt.plot(epsilon, spectral, 'g-', label="sum")  
-    
+    for i in calculation.generate_superset(0): 
+        channel = calculation.spectral_channel(i, epsilon) 
+        xy_vertices.append(list(zip(epsilon, channel)))  
+        colours.append(colour(i))
     
     title = "Chain Spectral"
     xlabel = "Energy $\\epsilon$"
-    ylabel = "Spectral"
+    ylabel = "Spectral $A(\\omega)$"
+    
+###http://matplotlib.org/examples/mplot3d/polys3d_demo.html
 
-plt.xlabel(xlabel, fontsize=30)
-plt.ylabel(ylabel, fontsize=30)
+fig = plt.figure(figsize=(10, 10), dpi=1080)
+ax = fig.gca(projection='3d')
+  
+poly = PolyCollection(xy_vertices, facecolors=colours)
+poly.set_alpha(0.7)
+ax.add_collection3d(poly, zs=z_indices, zdir='y')
+ 
+ax.set_xlim3d(epsilon_left, epsilon_right)
+ax.set_ylim3d(0, len(superset))
+ax.set_zlim3d(0, maximum)
+
+ax.set_xlabel(xlabel, fontsize=30)
+ax.set_zlabel(ylabel, fontsize=30) 
 
 plt.title( "%d-%s: $\\beta=%.3f$, $\\epsilon_0=%.3f$, $\\Gamma=%.3f$, $\\tau=%.3f$ , $U=%.3f$" % (chain_length, title, calculation.beta,
     epsilon_gap, gamma_strength, tunnel_strength, capacitive_strength), fontsize=15)     
-plt.legend()
-
-
-non_int = param_epsilon + param_tau
-
-values,_ = np.linalg.eig(non_int)
-print values
-
-height = values*0
-if plotting_mode == 0 or plotting_mode == 2:
-    height += np.average(transmission)
-elif plotting_mode == 1 or plotting_mode == 3:
-    height += np.average(spectral)
-
-plt.plot(values, height, 'ko') 
-
-
+    
 if plotting_mode == 2 or plotting_mode == 3:
-    plt.savefig('chain.svg')
+    plt.savefig('spinless_chain_channels.svg')
 else:    
     plt.show()
-
+    
+    
+    
+#time report
 global_time_end = time.time ()
 
 print "\n Time spent %.6f seconds in mode %d. \n " % (global_time_end - global_time_start, plotting_mode)

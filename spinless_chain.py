@@ -18,21 +18,25 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 #this is the simplest couloumb-blockade system around
 
 # Normally I use argparse for this, but due to sverely limited computational 
-#   resources, i.e. a computer that should've been retired years ago, I a
+#   resources, i.e. a computer that should've been retired years ago, I am
 #   working online (Get Data Joy) and can't use commandline arguments.   
-plotting_mode = 0
+plotting_mode = 2
 chain_length = 2
 
-capacitive_strength = 0.05 * 50
+capacitive_strength = 0.0
 tunnel_strength = 0.5
-epsilon_gap = 0.15
-
-epsilon_left = -5.0
-epsilon_right = 5.0
-resolution = 1000
+epsilon_gap = 0.15# - capacitive_strength
+print "Disabled line 28, would normally make it more comparable with [ref], "
+print "but doesn't actually matter, so it is ignored. It is a constant offset, basically."
+print "Also disabled line 48; this one indicates that, if one would attempt the interaction "
+print "of ref, then one also has to account for the fact that the ends of the chain "
+print "can only interact with one neighbour. This does make a slight difference."
+epsilon_left = -.5
+epsilon_right = 2.5
+resolution = 10000
 
 #Inverse temperature (units same as the others)
-param_beta = 0.05 * 250
+param_beta = 0.05 * 50000
 
 parser	= argparse.ArgumentParser(prog="N-chain",
   description = "Calculates tranmission or spectral function through a chain of N elements.")  
@@ -116,26 +120,23 @@ epsilon_left = args.el
 epsilon_right = args.er
 resolution = args.res
 
-dot_levels = 2* chain_length #All at the same energy; this is a chain.
+dot_levels = chain_length #All at the same energy; this is a chain.
 
 param_u = np.zeros((dot_levels, dot_levels))
 param_tau = np.zeros((dot_levels, dot_levels))
 
-for i in range(0, dot_levels):
-    if i%2==0:
+
+for i in range(0, dot_levels): 
+    if i + 1 < chain_length:
         l = i
-        r = l + 1
-        
-        param_u[l][r] = capacitive_strength;
-        param_u[r][l] = capacitive_strength;
-        
-    if i%2==0 and i/2 < chain_length-1:
-        l = i
-        r = i+2
-        for dl in range(0,2):
-            for dr in range(0,2):
+        r = i+1
+        for dl in range(0,1):
+            for dr in range(0,1):
                 param_tau[l+dl][r+dr] = tunnel_strength;
                 param_tau[r+dr][l+dl] = tunnel_strength; 
+                param_u[l+dl][r+dr] = capacitive_strength;
+                param_u[r+dr][l+dl] = capacitive_strength; 
+
 param_epsilon = np.diag( np.ones((dot_levels)))
 #This makes coupling to the leads
 #comparable to the coupling between levels. 
@@ -147,6 +148,11 @@ param_gamma_right = np.zeros((dot_levels,dot_levels))
 param_gamma_left[0][0] = gamma_strength;
 param_gamma_right[epsilon_gap][epsilon_gap] = gamma_strength;
 
+#print "[Warning]: Editing param_epsilon begin/end by 0.5U."
+#param_epsilon[0][0] += capacitive_strength/2
+#param_epsilon[dot_levels-1][dot_levels-1] += capacitive_strength/2
+
+
 
 calculation = igfwl(
     param_epsilon, 
@@ -156,7 +162,7 @@ calculation = igfwl(
     param_gamma_right, 
     param_beta
 )
-
+  
 epsilon = np.linspace(epsilon_left, epsilon_right, resolution)
 
 plt.figure(figsize=(10, 10), dpi=1080)
@@ -172,7 +178,7 @@ if plotting_mode == 0 or plotting_mode == 2:
     
     #It is unfeasible to plot all the channels. Sum them up!
     
-    transmission = calculation.transport_channel(0, epsilon)
+    transmission = epsilon*0
     
     for i in calculation.generate_superset(0):
         transmission += calculation.transport_channel(i, epsilon)
@@ -194,7 +200,7 @@ if plotting_mode == 0 or plotting_mode == 2:
 elif plotting_mode == 1 or plotting_mode == 3:
     
     
-    spectral = calculation.spectral_channel(0, epsilon)
+    spectral = epsilon*0 
     
     for i in calculation.generate_superset(0):
         spectral += calculation.spectral_channel(i, epsilon)
@@ -229,7 +235,7 @@ plt.plot(values, height, 'ko')
 
 
 if plotting_mode == 2 or plotting_mode == 3:
-    plt.savefig('chain.svg')
+    plt.savefig('spinless_chain.svg')
 else:    
     plt.show()
 
