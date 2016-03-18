@@ -1,4 +1,7 @@
 import numpy as np
+import scipy as sc
+import scipy.misc as scmisc
+import scipy.special as scspecial
 
 class igfwl(object): 
     """The igfwl class will compute the transport function using the many-body interacting Green's function in the wide-band limit."""
@@ -24,6 +27,7 @@ class igfwl(object):
             
             self.beta = param_beta
     
+            self.cutoff_chance = 0.0001
             
     def singleparticlebackground(self, background):
         """This gives us the single-particle Green's function with some background."""
@@ -52,8 +56,7 @@ class igfwl(object):
         for i in ket:
             if i != 0:
                 final += 2**q
-            q += 1
-            
+            q += 1 
         return final
     def ket(self, number):
         """Turns an integer number into a ket."""
@@ -102,7 +105,7 @@ class igfwl(object):
         
         chances = self.distribution()
         for i in self.generate_superset(k):
-                if chances[i] > 0.0001:
+                if chances[i] > self.cutoff_chance:
                     transport_k += np.real( self.transport_channel_ij(i, chances, epsilon))
         return transport_k
     def spectral_channel(self, k, epsilon):
@@ -126,3 +129,80 @@ class igfwl(object):
                 transport_k_ij = [np.trace(chance**2 * 1.0/np.pi * np.imag(ret_gf(ee))) for ee in epsilon]
                 transport_k += np.real(transport_k_ij) / len(superset)
         return transport_k
+#################
+class igfwl_vibrational(igfwl):
+    def __init__(self, 
+        param_epsilon, 
+        param_tau,
+        param_u, 
+        param_gamma_left,
+        param_gamma_right,
+        param_beta,
+        phonon_energy,
+        phonon_electron_coupling ): 
+        #call parent init
+        super(igfwl_vibrational, self).__init__( 
+            param_epsilon, 
+            param_tau,
+            param_u, 
+            param_gamma_left,
+            param_gamma_right,
+            param_beta)
+        #own
+        self.pe = phonon_energy
+        self.pec = phonon_electron_coupling
+        
+    def overlap(self, n, m):
+        n = int(n)
+        m = int(m)
+        
+        l = self.pec
+        
+        if n >= 0 and m >= 0:
+            smaller =  np.min( [n, m] )
+            
+            fc = np.sqrt(scspecial.factorial(n) * scspecial.factorial(m))
+            if np.isinf(fc):
+                raise Exception("[igfwl_vibrational::overlap] Numbers are too high. Can't cope.")
+            
+            fc *= np.exp(-0.5 * l**2)
+            
+            fc *= np.sum([ (-l)**(n-k) * l**(m-k) / scspecial.factorial(k) / scspecial.factorial(m-k) / scspecial.factorial(n-k)   for k in range(smaller+1)])
+            
+            fc = fc
+            return fc
+        return 0.0
+    def sum_factor(self, n, m, x, y): 
+        
+        l = self.pec
+        
+        fc = self.overlap(n+y-x, m-y)
+        sc = (l * self.pe)**x  
+        sc *= scmisc.comb(x, y)
+        
+        sc *= fc 
+        
+        return sc
+    def chance_phonons(self, m, n):
+        p_m = np.exp(-self.beta * self.pe * (m+n)/2.0) * (1 - np.exp(-self.beta * self.pe))
+        
+        return p_m
+    def transport_channel_vibrational(self, k, epsilon, significant_terms):
+        """Returns the transmission function for the many body state k.""" 
+        transport_k = []
+        
+        chances = self.distribution()
+        
+        for energy in epsilon:
+            retA_vib = 0
+            advA_vib = 0
+            for i in self.generate_superset(k):
+                if chances[i] > self.cutoff_chance:
+                    retA, advA = self.singleparticlebackground(i)
+                    for significant_term in significant_terms:   
+                        retA_vib += retA(energy)**significant_term[2] * significant_term[4]
+                        advA_vib += advA(energy)**significant_term[2] * significant_term[4]
+            transport_at_energy = np.abs( np.real(np.trace(chances[i]**2 *np.dot(self.gamma_left, ( np.dot(retA_vib,  np.dot(self.gamma_right, advA_vib)))))) )
+            transport_k.append(transport_at_energy)
+            print "%d\t%2.3f\t%2.3e" % (i,energy,transport_at_energy)
+        return np.array(transport_k )
