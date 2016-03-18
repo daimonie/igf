@@ -8,7 +8,7 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 2
+plotting_mode = 0
 
 alpha = 0.74
 tau = 0.0241
@@ -20,7 +20,7 @@ capacitive = 0.0
 electron_phonon_coupling = 1.5
 phonon_energy = 0.015 # just a low number.
 
-global_max_phonons = 5*15 #if set too high, double factorials leads to Inf.
+global_max_phonons = 5*15#if set too high, double factorials leads to Inf.
 
 cutoff_chance = 1e-4
 
@@ -120,8 +120,8 @@ for i in calculation.generate_superset(0):
 
 minimum = 1.2 * np.min(transmission)
 maximum = 1.2 * np.max(transmission)
-#plt.plot(epsilon, transmission, 'g-')   
-plt.semilogy(epsilon, transmission, 'g-')   
+plt.plot(epsilon, transmission, 'g-')   
+#plt.semilogy(epsilon, transmission, 'g-')   
     
 
 title = "Transmission, $\\lambda=%.3f" % electron_phonon_coupling
