@@ -176,7 +176,8 @@ class igfwl_vibrational(igfwl):
         
         l = self.pec
         
-        fc = self.overlap(n+y-x, m-y)
+        #fc = self.overlap(n+y-x, m-y)
+        fc = self.overlap(n, m+x-2*y)
         sc = (l * self.pe)**x  
         sc *= scmisc.comb(x, y)
         
@@ -202,6 +203,7 @@ class igfwl_vibrational(igfwl):
                     for significant_term in significant_terms:   
                         retA_vib += retA(energy)**significant_term[2] * significant_term[4]
                         advA_vib += advA(energy)**significant_term[2] * significant_term[4]
+            #transport_at_energy = np.real(np.trace(chances[i]**2 *np.dot(self.gamma_left, ( np.dot(retA_vib,  np.dot(self.gamma_right, advA_vib))))))
             transport_at_energy = np.abs( np.real(np.trace(chances[i]**2 *np.dot(self.gamma_left, ( np.dot(retA_vib,  np.dot(self.gamma_right, advA_vib)))))) )
             transport_k.append(transport_at_energy)
             print "%d\t%2.3f\t%2.3e" % (i,energy,transport_at_energy)
