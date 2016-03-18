@@ -19,27 +19,40 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 0
-
+plotting_mode = 2
+#paper values
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
 levels = -0.25 
+capacitive = tau*0
+
+#supplement values
+alpha=0.48
+tau=0.0091
+gamma=0.0242
+capacitive = tau * 4 * 9
+
+fermi = -4.8 #all numbers are relative to fermi (set to zero), but comparison plots are easier if you use it
 
 
 tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
-epsilon_left = - 2.0
-epsilon_right = 2.0
+epsilon_right = .2
+epsilon_left = -.7
 epsilon_res = 100
 
 bias_left = -1
 bias_right = 1
-bias_res = 100
+bias_res = epsilon_res
+
+cmap = plt.get_cmap('jet') 
 
 interaction = np.zeros((2,2))
+interaction[0][1] = capacitive
+interaction[1][0] = capacitive
 
 gamma_left = np.zeros((2,2))
 gamma_left[0][0] = gamma
@@ -49,6 +62,14 @@ gamma_right[1][1] = gamma
 
 beta = 0.05 * 50
 
+tick_min = 0.0
+tick_max = 1.0
+tick_min_log = -10.00
+tick_max_log = 0.00
+tick_num = 100
+
+is_log_plot = True
+####################################33
 data_bias = []
 data_eps = []
 data_transmission = []
@@ -78,7 +99,10 @@ for bias in np.linspace(bias_left, bias_right, bias_res):
     
     data_bias.extend( bias + epsilon*0)
     data_eps.extend(epsilon)
-    data_transmission.extend( np.log(transmission))
+    if is_log_plot:
+        data_transmission.extend( np.log(transmission))
+    else:
+        data_transmission.extend( transmission )
 
  
 [mesh_epsilon, mesh_bias] = np.meshgrid(
@@ -98,23 +122,40 @@ fig, ax = plt.subplots(figsize=(25, 15), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30) 
 
-cmap = plt.get_cmap('afmhot') 
+if is_log_plot: 
+    tick_min = tick_min_log
+    tick_max = tick_max_log
 
-levels = MaxNLocator(nbins=100).tick_values(mesh_transmission.min(), mesh_transmission.max()*1.1) 
 
-cf = ax.contourf(mesh_epsilon,mesh_bias,mesh_transmission, cmap=cmap, levels=levels)
-fig.colorbar(cf, ax=ax, shrink=0.9, pad=0.15)    
+color_levels = MaxNLocator(nbins=tick_num).tick_values(tick_min, tick_max) 
+
+cf = ax.contourf(mesh_epsilon+fermi,mesh_bias,mesh_transmission, cmap=cmap, levels=color_levels)
+cb = fig.colorbar(cf, ax=ax, shrink=0.9, pad=0.15)    
+
+
+
+for t in cb.ax.get_yticklabels():
+     t.set_fontsize(20)
 
 plt.rc('font', family='serif')
-plt.xlim([epsilon_left, epsilon_right])
 
 ax.set_axis_bgcolor('black'); 
 
 ax.set_xlabel( "Energy $\\epsilon$" ,fontsize=30);
-ax.set_ylabel( "Bias voltage $V$",fontsize=30);  
+ax.set_ylabel( "Bias voltage $V$",fontsize=30);
+
+if is_log_plot:
+    ax.set_title( "Perrin two-site [log, Transmission], $\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive), fontsize=25, y=1.07) 
+else:
+    ax.set_title( "Perrin two-site [Transmission], $\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive), fontsize=25, y=1.07) 
+    
 plt.yticks(fontsize=30)
- 
-plt.show()
+if plotting_mode == 0:
+    plt.show()
+elif plotting_mode == 1:
+    plt.savefig('perrin_two_site_map.png')
+elif plotting_mode == 2:
+    plt.savefig('perrin_two_site_map.svg')
 
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)

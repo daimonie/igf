@@ -10,11 +10,14 @@ global_time_start = time.time()
 
 plotting_mode = 0
 
+print "This is the window of integration, not the bias-current with NDC as in Perrin (2014)!"
+
+
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
 levels = -0.25
-bias = 1 #in eV
+bias = .75 #in eV
 capacitive = 0.15
 
 hamiltonian = np.zeros((2,2))
@@ -67,38 +70,26 @@ ylabel = ""
 plt.rc('font', family='serif')
 
 maximum = 0.2
-if plotting_mode == 0 or plotting_mode == 2:
-    
-    #It is unfeasible to plot all the channels. Sum them up!
-    
-    transmission = epsilon*0
-    
-    for i in calculation.generate_superset(0):
-        transmission += calculation.transport_channel(i, epsilon)
-    
-    maximum = 1.2 * np.max(transmission)
-    plt.semilogy(epsilon, transmission, 'g-')   
-     
-    
-    title = "Transmission"
-    xlabel = "Energy $\\epsilon$"
-    ylabel = "Transmission"
-    
-elif plotting_mode == 1 or plotting_mode == 3:
-    
-    
-    spectral = epsilon*0 
-    
-    for i in calculation.generate_superset(0):
-        spectral += calculation.spectral_channel(i, epsilon)
-    
-    maximum = 1.2 * np.max(spectral)
-    plt.plot(epsilon, spectral, 'g-', label="sum")  
-    
-    title = "Spectral"
-    xlabel = "Energy $\\epsilon$"
-    ylabel = "Spectral"
 
+#It is unfeasible to plot all the channels. Sum them up!
+
+transmission = epsilon*0
+
+for i in calculation.generate_superset(0):
+    transmission += calculation.transport_channel(i, epsilon)
+
+current = np.array([ np.trapz(transmission[range(i)], epsilon[range(i)]) for i in range(epsilon_res)])
+
+maximum = 1.2 * np.max(current)
+
+
+plt.plot(epsilon, current, 'g-')   
+ 
+
+title = "Current"
+xlabel = "Energy $\\epsilon$"
+ylabel = "$I$"
+ 
 plt.ylim([0, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
