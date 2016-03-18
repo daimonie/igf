@@ -16,7 +16,7 @@ print "This is the window of integration, not the bias-current with NDC as in Pe
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
-levels = -0.25
+levels = -0.0 #Fig 4b, Perrin(2014)
 bias = .75 #in eV
 capacitive = 0.15
 

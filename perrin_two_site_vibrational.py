@@ -44,7 +44,7 @@ gamma_right[1][1] = gamma
 beta = 0.05 * 50
 
 
-calculation = igfwl(
+calculation = igfwl_vibrational(
     hamiltonian, 
     tunnel,
     interaction, 

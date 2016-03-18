@@ -13,20 +13,19 @@ plotting_mode = 0
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
-levels = -0.25
-capacitive = 0.0
+levels = -0.0 #Fig 4b, Perrin(2014)
+capacitive = 0.45 
 
 tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
-epsilon_left = - 2.0
-epsilon_right = 2.0
-epsilon_res = 1000
+# left, right are now +- eV/2, see Fig 4b in Perrin(2014)
+epsilon_res = 100
 
 bias_left = -1.0
 bias_right = 1.0
-bias_res = 1000
+bias_res = 100
 
 interaction = np.zeros((2,2))
 interaction[0][1] = capacitive
@@ -39,11 +38,9 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 50
+beta = 0.05 * 500
 
 biaswindow = np.linspace(bias_left, bias_right, bias_res)
-epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
-    
     
 current = []
 
@@ -62,6 +59,8 @@ for bias in biaswindow:
         beta
     )
     
+    epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
+    
     #It is unfeasible to plot all the channels. Sum them up!
     
     transmission = epsilon*0
@@ -73,6 +72,7 @@ for bias in biaswindow:
 
 
 current = np.array(current)
+minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
 
@@ -93,27 +93,13 @@ title = "Current versus bias"
 xlabel = "Energy $\\epsilon$"
 ylabel = "$I(V_b)$"
  
-plt.ylim([0, maximum])
+plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
 
 plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
     alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
 plt.legend()
-
-
-non_int = hamiltonian + tunnel
-
-values,_ = np.linalg.eig(non_int)
-print values
-
-height = values*0
-if plotting_mode == 0 or plotting_mode == 2:
-    height += np.average(transmission)
-elif plotting_mode == 1 or plotting_mode == 3:
-    height += np.average(spectral)
-
-plt.plot(values, height, 'ko') 
 
 
 if plotting_mode == 2 or plotting_mode == 3:
