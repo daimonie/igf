@@ -14,7 +14,7 @@ alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
 levels = -0.25
-capacitive = 0.15
+capacitive = 0.0
 
 tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
@@ -24,8 +24,8 @@ epsilon_left = - 2.0
 epsilon_right = 2.0
 epsilon_res = 1000
 
-bias_left = - 2.0
-bias_right = 2.0
+bias_left = -1.0
+bias_right = 1.0
 bias_res = 1000
 
 interaction = np.zeros((2,2))
@@ -42,7 +42,10 @@ gamma_right[1][1] = gamma
 beta = 0.05 * 50
 
 biaswindow = np.linspace(bias_left, bias_right, bias_res)
-
+epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
+    
+    
+current = []
 
 for bias in biaswindow:
     hamiltonian = np.zeros((2,2))
@@ -58,8 +61,6 @@ for bias in biaswindow:
         gamma_right, 
         beta
     )
-    
-    epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
     
     #It is unfeasible to plot all the channels. Sum them up!
     
@@ -85,12 +86,12 @@ xlabel = ""
 ylabel = ""
 plt.rc('font', family='serif')
  
-plt.plot(epsilon, current, 'g-')   
+plt.plot(biaswindow, current, 'g-')   
  
 
-title = "Current"
+title = "Current versus bias"
 xlabel = "Energy $\\epsilon$"
-ylabel = "$I$"
+ylabel = "$I(V_b)$"
  
 plt.ylim([0, maximum])
 plt.xlabel(xlabel, fontsize=30)
