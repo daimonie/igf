@@ -14,14 +14,14 @@ alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
 levels = -0.25
-bias = 1.0 #in eV
+bias = 0.15 #in eV
 capacitive = 0.0
 
 electron_phonon_coupling = 1.5
 phonon_energy = 0.015 # just a low number.
 
 number_of_phonons = 5 
-perturbation_expansion_order = 5
+perturbation_expansion_order = 15
 
 cutoff_chance = 1e-4
 
@@ -52,6 +52,10 @@ gamma_right[1][1] = gamma
 beta = 0.05 * 150
 
 
+epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
+
+print "Calculating transmission for order %d" % (perturbation_expansion_order)
+
 calculation = igfwl_vibrational(
     hamiltonian, 
     tunnel,
@@ -64,13 +68,9 @@ calculation = igfwl_vibrational(
     number_of_phonons,
     perturbation_expansion_order
 ) 
-epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 
 transmission = calculation.full_transport(epsilon)
-
-
-
-
+ 
 old_calculation = igfwl(
     hamiltonian, 
     tunnel,
@@ -97,12 +97,15 @@ plt.rc('font', family='serif')
 
 maximum = 1.0
 
-minimum = 1.2 * np.min(transmission)
-maximum = 1.2 * np.max(transmission)
+minimum = 1.2 * np.min([ np.min(transmission), np.min(old_transmission)])
+maximum = 1.2 * np.max([ np.max(transmission), np.max(old_transmission)])
 
-plt.plot(epsilon, transmission, 'g-')   
-plt.plot(epsilon, old_transmission, 'r--')       
-    
+
+ 
+plt.semilogy(epsilon, transmission, 'r-', label="vibrational expansion, order=%d" % (perturbation_expansion_order))    
+plt.semilogy(epsilon, old_transmission, 'k--', label="ignore vibrations")       
+
+plt.legend()
 
 title = "Transmission, $\\lambda=%.3f" % electron_phonon_coupling
 xlabel = "Energy $\\epsilon$"
@@ -112,12 +115,11 @@ plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
 
-final_title = "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$,max=%.3e" % (title,
-    alpha, tau, gamma, levels, bias, beta, capacitive, np.max(transmission))
+final_title = "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
+    alpha, tau, gamma, levels, bias, beta, capacitive)
 
 print final_title
-plt.title( final_title, fontsize=15)     
-#plt.legend()
+#plt.title( final_title, fontsize=15)      
 
 
 non_int = hamiltonian + tunnel
@@ -127,7 +129,7 @@ print values
 
 height = values*0
 if plotting_mode == 0 or plotting_mode == 2:
-    height += np.average(transmission) 
+    height += 0.5*maximum
 
 plt.plot(values, height, 'ko') 
 

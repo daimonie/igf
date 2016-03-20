@@ -179,8 +179,8 @@ class igfwl_vibrational(igfwl):
     def overlap(self): 
         factorial = lambda xx: scspecial.factorial(xx)
         newrange = lambda(number): range(number) if number > 0 else [0]
-        for n in range(self.np):
-            for m in range(self.np):
+        for n in newrange(self.np):
+            for m in newrange(self.np):
                 smaller = n
                 if m < n:
                     smaller = m
@@ -191,7 +191,8 @@ class igfwl_vibrational(igfwl):
         #print "Overlap Matrix:\n", self.overlap_matrix
     def chances(self):
         Z = 0.00 
-        for kappa in range( self.density_matrix.shape[0]):
+        newrange = lambda(number): range(number) if number > 0 else [0]
+        for kappa in newrange( self.density_matrix.shape[0]):
             electron_energy = 0.00
             state = self.ket(kappa) 
             
@@ -199,27 +200,29 @@ class igfwl_vibrational(igfwl):
             
             if norm_squared > 0: 
                 electron_energy = np.dot(state.T, np.dot( self.epsilon, state)) / norm_squared 
-            for n in range(self.np):
-                for m in range(self.np):
+            for n in newrange(self.np):
+                for m in newrange(self.np):
                     self.density_matrix[kappa,n,m] = np.exp(- self.beta * ( electron_energy + self.pe * (n+m)))
                     Z += self.density_matrix[kappa,n,m] * self.overlap_matrix[n,m]
-        
+        #print "Z=%.3e" % Z
         self.density_matrix /= Z
         #print "Density Matrix: \n", self.density_matrix
     def calculate_q(self): 
         factorial = lambda xx: scspecial.factorial(xx)
-        for x in range(self.mo):
-            for y in range(self.mo):
+        newrange = lambda(number): range(number) if number > 0 else [0]
+        for x in newrange(self.mo):
+            for y in newrange(self.mo):
                 if y <= x and y%2 == x%2:
                     self.tensor_q[x,y] = (-0.5)**((x-y)/2.0) * factorial(x) * 1.0 /( factorial(y) * factorial( (x-y)/2))
         #print self.tensor_q
     def calculate_p(self):  
         comb = lambda nn, kk: scmisc.comb(nn,kk)
+        newrange = lambda(number): range(number) if number > 0 else [0]
         
-        for n in range(self.np):
-            for m in range(self.np):
-                for y in range(self.mo):
-                    for p in range(self.mo):
+        for n in newrange(self.np):
+            for m in newrange(self.np):
+                for y in newrange(self.mo):
+                    for p in newrange(self.mo):
                         if y >= p: 
                             self.tensor_p[n,m,y,p] = comb(y,p) * np.sqrt( comb(n,p) * comb(m, y-p))
         #print self.tensor_p
@@ -231,22 +234,23 @@ class igfwl_vibrational(igfwl):
             
             list_advanced = []
             list_retarded = []
+            newrange = lambda(number): range(number) if number > 0 else [0]
             
-            for m in range(self.np):
-                for n in range(self.np): 
-                    for x in range(self.mo):
+            for m in newrange(self.np):
+                for n in newrange(self.np): 
+                    for x in newrange(self.mo):
                         xterm = self.density_matrix[lam, m, n] * (self.pec * self.pe )**x
                         x_sum = 0.0
-                        for y in range(x):
+                        for y in newrange(x):
                             if y%2 == x%2:
                                 yterm = self.tensor_q[x,y]
                                 y_sum = 0.0
-                                for p in range(y):
+                                for p in newrange(y):
                                     if n - p > 0 and m-y+p > 0:
                                         y_sum += self.tensor_p[m,n,y,p] * self.overlap_matrix[n-p, m-y+p]
                                 x_sum += yterm * y_sum
                         
-                        x_coefficient = xterm * x_sum
+                        x_coefficient = xterm * x_sum 
                         
                         list_advanced.append( lambda energy: ad_gf(energy)**(x+1) * x_coefficient )
                         list_retarded.append( lambda energy: ret_gf(energy)**(x+1) * x_coefficient )
@@ -279,6 +283,9 @@ class igfwl_vibrational(igfwl):
         for lam in superset:
             print >> sys.stderr, "Calculating channel %d of %d" % (lam, len(superset))
             transport += self.transport_channel(lam, epsilon)
+        
+        if np.min(transport) < 0:
+            print >> sys.stderr, "Warning: Transport < 0."
             
         return np.abs(transport)
 #######################3
