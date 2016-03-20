@@ -14,7 +14,7 @@ alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
 levels = -0.25
-bias = 1.0 #in eV
+bias = 0.15 #in eV
 capacitive = 0.0
 
 hamiltonian = np.zeros((2,2))
@@ -28,7 +28,7 @@ tunnel[1][0] = -tau
 
 epsilon_left = - 2.0
 epsilon_right = 2.0
-epsilon_res = 1000
+epsilon_res = 10000
 
 interaction = np.zeros((2,2))
 interaction[0][1] = capacitive
