@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sc
 import scipy.misc as scmisc
 import scipy.special as scspecial
+import sys as sys
 
 class igfwl(object): 
     """The igfwl class will compute the transport function using the many-body interacting Green's function in the wide-band limit."""
@@ -132,14 +133,17 @@ class igfwl(object):
 #################
 class igfwl_vibrational(igfwl):
     def __init__(self, 
-        param_epsilon, 
-        param_tau,
-        param_u, 
-        param_gamma_left,
-        param_gamma_right,
-        param_beta,
-        phonon_energy,
-        phonon_electron_coupling ): 
+            param_epsilon, 
+            param_tau,
+            param_u, 
+            param_gamma_left,
+            param_gamma_right,
+            param_beta,
+            phonon_energy,
+            phonon_electron_coupling,
+            number_of_phonons,
+            max_order
+        ): 
         #call parent init
         super(igfwl_vibrational, self).__init__( 
             param_epsilon, 
@@ -149,62 +153,132 @@ class igfwl_vibrational(igfwl):
             param_gamma_right,
             param_beta)
         #own
-        self.pe = phonon_energy
+        self.pe  = phonon_energy
         self.pec = phonon_electron_coupling
+        self.np  = number_of_phonons
+        self.mo  = max_order
+        #print "Welcome to the vibrational expansion."
         
-    def overlap(self, n, m):
-        n = int(n)
-        m = int(m)
+        self.overlap_matrix = np.zeros((self.np, self.np))
+        self.overlap ()
+        self.density_matrix = np.zeros(( len(self.generate_superset(0)), self.np, self.np))
+        self.chances ()
         
-        l = self.pec
+        self.tensor_q = np.zeros((self.mo, self.mo))
+        self.calculate_q()
         
-        if n >= 0 and m >= 0:
-            smaller =  np.min( [n, m] )
+        
+        self.tensor_p = np.zeros((self.np, self.np, self.mo, self.mo))
+        self.calculate_p()
+        
+        self.cache_retarded_gf = []
+        self.cache_advanced_gf = []
+        
+        for i in self.generate_superset(0):
+            _, _ = self.greens_functions(i)
+    def overlap(self): 
+        factorial = lambda xx: scspecial.factorial(xx)
+        newrange = lambda(number): range(number) if number > 0 else [0]
+        for n in range(self.np):
+            for m in range(self.np):
+                smaller = n
+                if m < n:
+                    smaller = m
+                    
+                self.overlap_matrix[n,m] = np.exp(-0.5*self.pec**2) * np.sqrt( factorial(n) * factorial(m))
+                self.overlap_matrix[n,m] *= np.sum(np.array([((-self.pec)**(n-k) * (self.pec)**(m-k))/(factorial(k) * factorial(n-k) * factorial(m-k)) for k in newrange(smaller)]))
+                #self.overlap_matrix[n,m] = np.abs( self.overlap_matrix[n,m])
+        #print "Overlap Matrix:\n", self.overlap_matrix
+    def chances(self):
+        Z = 0.00 
+        for kappa in range( self.density_matrix.shape[0]):
+            electron_energy = 0.00
+            state = self.ket(kappa) 
             
-            fc = np.sqrt(scspecial.factorial(n) * scspecial.factorial(m))
-            if np.isinf(fc):
-                raise Exception("[igfwl_vibrational::overlap] Numbers are too high. Can't cope.")
+            norm_squared    = np.dot(state.T, state)
             
-            fc *= np.exp(-0.5 * l**2)
+            if norm_squared > 0: 
+                electron_energy = np.dot(state.T, np.dot( self.epsilon, state)) / norm_squared 
+            for n in range(self.np):
+                for m in range(self.np):
+                    self.density_matrix[kappa,n,m] = np.exp(- self.beta * ( electron_energy + self.pe * (n+m)))
+                    Z += self.density_matrix[kappa,n,m] * self.overlap_matrix[n,m]
+        
+        self.density_matrix /= Z
+        #print "Density Matrix: \n", self.density_matrix
+    def calculate_q(self): 
+        factorial = lambda xx: scspecial.factorial(xx)
+        for x in range(self.mo):
+            for y in range(self.mo):
+                if y <= x and y%2 == x%2:
+                    self.tensor_q[x,y] = (-0.5)**((x-y)/2.0) * factorial(x) * 1.0 /( factorial(y) * factorial( (x-y)/2))
+        #print self.tensor_q
+    def calculate_p(self):  
+        comb = lambda nn, kk: scmisc.comb(nn,kk)
+        
+        for n in range(self.np):
+            for m in range(self.np):
+                for y in range(self.mo):
+                    for p in range(self.mo):
+                        if y >= p: 
+                            self.tensor_p[n,m,y,p] = comb(y,p) * np.sqrt( comb(n,p) * comb(m, y-p))
+        #print self.tensor_p
+    def greens_functions(self, lam):
+        if len(self.cache_retarded_gf) > lam:
+            return self.cache_retarded_gf[lam], self.cache_advanced_gf[lam]
+        else:
+            ret_gf, ad_gf = self.singleparticlebackground(lam) 
             
-            fc *= np.sum([ (-l)**(n-k) * l**(m-k) / scspecial.factorial(k) / scspecial.factorial(m-k) / scspecial.factorial(n-k)   for k in range(smaller+1)])
+            list_advanced = []
+            list_retarded = []
             
-            fc = fc
-            return fc
-        return 0.0
-    def sum_factor(self, n, m, x, y): 
+            for m in range(self.np):
+                for n in range(self.np): 
+                    for x in range(self.mo):
+                        xterm = self.density_matrix[lam, m, n] * (self.pec * self.pe )**x
+                        x_sum = 0.0
+                        for y in range(x):
+                            if y%2 == x%2:
+                                yterm = self.tensor_q[x,y]
+                                y_sum = 0.0
+                                for p in range(y):
+                                    if n - p > 0 and m-y+p > 0:
+                                        y_sum += self.tensor_p[m,n,y,p] * self.overlap_matrix[n-p, m-y+p]
+                                x_sum += yterm * y_sum
+                        
+                        x_coefficient = xterm * x_sum
+                        
+                        list_advanced.append( lambda energy: ad_gf(energy)**(x+1) * x_coefficient )
+                        list_retarded.append( lambda energy: ret_gf(energy)**(x+1) * x_coefficient )
+            final_retarded = lambda ee: np.sum([retarded(ee) for retarded in list_retarded], axis=0)
+            final_advanced = lambda ee: np.sum([advanced(ee) for advanced in list_advanced], axis=0)
+            
+            self.cache_retarded_gf.append(final_retarded)
+            self.cache_advanced_gf.append(final_advanced)
+            
+            return final_retarded, final_advanced
+    def transport_channel(self, k, epsilon):
         
-        l = self.pec
+        transport_k = epsilon * 0
+        superset = self.generate_superset(k)
         
-        #fc = self.overlap(n+y-x, m-y)
-        fc = self.overlap(n, m+x-2*y)
-        sc = (l * self.pe)**x  
-        sc *= scmisc.comb(x, y)
+        for i in superset:
+                state = self.ket( i ) 
+                 
+                retarded, advanced = self.greens_functions(i)
+            
+                transport_k_ij = [np.trace(np.dot(self.gamma_left, ( np.dot(
+                    retarded(ee),  np.dot(self.gamma_right, advanced(ee)))))) for ee in epsilon]
+                
+                transport_k += np.real(transport_k_ij) / len(superset)
+        return transport_k
+    def full_transport(self, epsilon): 
+        transport = epsilon * 0
+        superset = self.generate_superset(0)
         
-        sc *= fc 
-        
-        return sc
-    def chance_phonons(self, m, n):
-        p_m = np.exp(-self.beta * self.pe * (m+n)/2.0) * (1 - np.exp(-self.beta * self.pe))
-        
-        return p_m
-    def transport_channel_vibrational(self, k, epsilon, significant_terms):
-        """Returns the transmission function for the many body state k.""" 
-        transport_k = []
-        
-        chances = self.distribution()
-        
-        for energy in epsilon:
-            retA_vib = 0
-            advA_vib = 0
-            for i in self.generate_superset(k):
-                if chances[i] > self.cutoff_chance:
-                    retA, advA = self.singleparticlebackground(i)
-                    for significant_term in significant_terms:   
-                        retA_vib += retA(energy)**significant_term[2] * significant_term[4]
-                        advA_vib += advA(energy)**significant_term[2] * significant_term[4]
-            #transport_at_energy = np.real(np.trace(chances[i]**2 *np.dot(self.gamma_left, ( np.dot(retA_vib,  np.dot(self.gamma_right, advA_vib))))))
-            transport_at_energy = np.abs( np.real(np.trace(chances[i]**2 *np.dot(self.gamma_left, ( np.dot(retA_vib,  np.dot(self.gamma_right, advA_vib)))))) )
-            transport_k.append(transport_at_energy)
-            print "%d\t%2.3f\t%2.3e" % (i,energy,transport_at_energy)
-        return np.array(transport_k )
+        for lam in superset:
+            print >> sys.stderr, "Calculating channel %d of %d" % (lam, len(superset))
+            transport += self.transport_channel(lam, epsilon)
+            
+        return np.abs(transport)
+#######################3

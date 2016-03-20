@@ -8,7 +8,7 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 0
+plotting_mode = 2
 
 alpha = 0.74
 tau = 0.0241
@@ -20,7 +20,8 @@ capacitive = 0.0
 electron_phonon_coupling = 1.5
 phonon_energy = 0.015 # just a low number.
 
-global_max_phonons = 5*15#if set too high, double factorials leads to Inf.
+number_of_phonons = 5 
+perturbation_expansion_order = 5
 
 cutoff_chance = 1e-4
 
@@ -59,48 +60,31 @@ calculation = igfwl_vibrational(
     gamma_right, 
     beta,
     phonon_energy,
-    electron_phonon_coupling    
-)
-calculation.cutoff_chance = cutoff_chance
-
-max_phonon_number = 0
-
-chances = []
-
-for i in range(global_max_phonons):
-    chance = calculation.chance_phonons(i, i)
-    chances.append(chance)
-    
-    if chance < calculation.cutoff_chance:
-        max_phonon_number = i
-        break
-
-summation_factors = np.zeros((max_phonon_number,max_phonon_number,max_phonon_number,max_phonon_number))    
-print "Maximum phonon number by boltzman is %d" % max_phonon_number
-
-if max_phonon_number > global_max_phonons:
-    max_phonon_number = global_max_phonons
-    print "Maximum phonon number exceeds calculational options; setting to %d." % max_phonon_number
-
-significant_terms = []    
-for n in range(max_phonon_number):
-    for m in range(max_phonon_number):
-        if chances[m] > calculation.cutoff_chance:
-            for x in range(max_phonon_number): 
-                if (calculation.pe * calculation.pec)**x > calculation.cutoff_chance:
-                    for y in range(x):  
-                        prefactor = calculation.sum_factor(n,m,x,y) * chances[m]
-                        
-                        if prefactor < calculation.cutoff_chance:
-                            break
-                        elif prefactor > calculation.cutoff_chance:
-                            #print "p[%d,%d,%d,%d] = %.3e" % (n,m,x,y, prefactor)   
-                            significant_terms.append( (n,m,x,y, prefactor))
-                    
-print "Found %d significant terms (under max. phonon constraint)" % len(significant_terms)
-
+    electron_phonon_coupling,
+    number_of_phonons,
+    perturbation_expansion_order
+) 
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 
+transmission = calculation.full_transport(epsilon)
+
+
+
+
+old_calculation = igfwl(
+    hamiltonian, 
+    tunnel,
+    interaction, 
+    gamma_left,
+    gamma_right, 
+    beta
+)
+
+
+old_transmission = epsilon*0
+
+for i in old_calculation.generate_superset(0):
+    old_transmission += old_calculation.transport_channel(i, epsilon)
 
 plt.figure(figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=20)
@@ -111,17 +95,13 @@ xlabel = ""
 ylabel = ""
 plt.rc('font', family='serif')
 
-maximum = 0.2
-
-transmission = epsilon*0
-
-for i in calculation.generate_superset(0):
-    transmission += calculation.transport_channel_vibrational(i, epsilon, significant_terms)
+maximum = 1.0
 
 minimum = 1.2 * np.min(transmission)
 maximum = 1.2 * np.max(transmission)
+
 plt.plot(epsilon, transmission, 'g-')   
-#plt.semilogy(epsilon, transmission, 'g-')   
+plt.plot(epsilon, old_transmission, 'r--')       
     
 
 title = "Transmission, $\\lambda=%.3f" % electron_phonon_coupling
