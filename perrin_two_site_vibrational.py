@@ -21,7 +21,7 @@ electron_phonon_coupling = 1.5
 phonon_energy = 0.015 # just a low number.
 
 number_of_phonons = 5 
-perturbation_expansion_order = 15
+perturbation_expansion_order = 7
 
 cutoff_chance = 1e-4
 
@@ -69,6 +69,10 @@ calculation = igfwl_vibrational(
     perturbation_expansion_order
 ) 
 
+ret_gf, ad_gf = calculation.singleparticlebackground(0) 
+
+
+
 transmission = calculation.full_transport(epsilon)
  
 old_calculation = igfwl(
@@ -100,10 +104,11 @@ maximum = 1.0
 minimum = 1.2 * np.min([ np.min(transmission), np.min(old_transmission)])
 maximum = 1.2 * np.max([ np.max(transmission), np.max(old_transmission)])
 
+print np.min(transmission), np.max(transmission)
+print np.min(old_transmission), np.max(old_transmission)
 
- 
 plt.semilogy(epsilon, transmission, 'r-', label="vibrational expansion, order=%d" % (perturbation_expansion_order))    
-plt.semilogy(epsilon, old_transmission, 'k--', label="ignore vibrations")       
+plt.semilogy(epsilon, old_transmission, 'k--', label="ignore vibrations")   
 
 plt.legend()
 

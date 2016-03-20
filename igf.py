@@ -250,13 +250,15 @@ class igfwl_vibrational(igfwl):
                                         y_sum += self.tensor_p[m,n,y,p] * self.overlap_matrix[n-p, m-y+p]
                                 x_sum += yterm * y_sum
                         
-                        x_coefficient = xterm * x_sum 
+                        x_coefficient = xterm * x_sum   
                         
-                        list_advanced.append( lambda energy: ad_gf(energy)**(x+1) * x_coefficient )
-                        list_retarded.append( lambda energy: ret_gf(energy)**(x+1) * x_coefficient )
+                        list_advanced.append( lambda energy: (ad_gf(energy)) **(x+1) * x_coefficient )
+                        list_retarded.append( lambda energy: (ret_gf(energy))**(x+1) * x_coefficient )
+                         
+                          
             final_retarded = lambda ee: np.sum([retarded(ee) for retarded in list_retarded], axis=0)
             final_advanced = lambda ee: np.sum([advanced(ee) for advanced in list_advanced], axis=0)
-            
+              
             self.cache_retarded_gf.append(final_retarded)
             self.cache_advanced_gf.append(final_advanced)
             
@@ -286,6 +288,7 @@ class igfwl_vibrational(igfwl):
         
         if np.min(transport) < 0:
             print >> sys.stderr, "Warning: Transport < 0."
-            
-        return np.abs(transport)
+            return np.abs(transport)
+        
+        return transport
 #######################3
