@@ -35,8 +35,11 @@ class igfwl(object):
         
         mu_background = np.diag([self.epsilon[i][i] + np.dot( self.u[i], background) for i in range(0,self.dim)])
         
-        single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)
-        single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)
+        scale = np.sqrt(float(len(self.generate_superset(0))))
+        scale = 1.00
+        
+        single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)/scale
+        single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)/scale
         
         return single_retarded, single_advanced
     def generate_superset(self, number):
@@ -67,7 +70,6 @@ class igfwl(object):
     def distribution(self):
         """Sets the boltzmann distribution function and generates the density-matrix."""
         
-        
         energy_vector = []
         superset = self.generate_superset(0) 
         
@@ -94,7 +96,7 @@ class igfwl(object):
         chance = chances[i]  
         ret_gf, ad_gf = self.singleparticlebackground( state ) 
          
-        transport_k_ij = [np.trace(chance**2 *np.dot(self.gamma_left, ( np.dot(
+        transport_k_ij = [np.trace(chance *np.dot(self.gamma_left, ( np.dot(
             ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon]
         return transport_k_ij
     def transport_channel(self, k, epsilon):
@@ -111,25 +113,7 @@ class igfwl(object):
         return transport_k
     def spectral_channel(self, k, epsilon):
         """Returns the transmission function for the many body state k."""
-        advanced_gf = np.zeros((self.dim, self.dim))
-        retarded_gf = np.zeros((self.dim, self.dim))
-        
-        transport_k = 0 * epsilon
-        
-        chances = self.distribution()
-        
-        superset = self.generate_superset(k)
-        
-        for i in superset:
-                state = self.ket( i ) 
-                
-                ret_gf, ad_gf = self.singleparticlebackground( state ) 
-                
-                chance = chances[i] 
-            
-                transport_k_ij = [np.trace(chance**2 * 1.0/np.pi * np.imag(ret_gf(ee))) for ee in epsilon]
-                transport_k += np.real(transport_k_ij) / len(superset)
-        return transport_k
+        raise Exception("Needs to be redone")
 #################
 class igfwl_vibrational(igfwl):
     def __init__(self, 
@@ -159,16 +143,17 @@ class igfwl_vibrational(igfwl):
         self.mo  = max_order
         #print "Welcome to the vibrational expansion."
         
-        self.overlap_matrix = np.zeros((self.np, self.np))
+        self.overlap_matrix = np.zeros((self.np+1, self.np+1))
         self.overlap ()
-        self.density_matrix = np.zeros(( len(self.generate_superset(0)), self.np, self.np))
+        
+        self.density_matrix = np.zeros(( len(self.generate_superset(0))+1, self.np+1, self.np+1))
         self.chances ()
         
-        self.tensor_q = np.zeros((self.mo, self.mo))
+        self.tensor_q = np.zeros((self.mo+1, self.mo+1))
         self.calculate_q()
         
         
-        self.tensor_p = np.zeros((self.np, self.np, self.mo, self.mo))
+        self.tensor_p = np.zeros((self.np+1, self.np+1, self.mo+1, self.mo+1))
         self.calculate_p()
         
         self.cache_retarded_gf = []
@@ -176,9 +161,11 @@ class igfwl_vibrational(igfwl):
         
         for i in self.generate_superset(0):
             _, _ = self.greens_functions(i)
+            
     def overlap(self): 
         factorial = lambda xx: scspecial.factorial(xx)
-        newrange = lambda(number): range(number) if number > 0 else [0]
+        
+        newrange = lambda(number): range(number+1) if number > 0 else [0]
         for n in newrange(self.np):
             for m in newrange(self.np):
                 smaller = n
@@ -191,9 +178,14 @@ class igfwl_vibrational(igfwl):
         #print "Overlap Matrix:\n", self.overlap_matrix
     def chances(self):
         Z = 0.00 
-        newrange = lambda(number): range(number) if number > 0 else [0]
+        
+        newrange = lambda(number): range(number+1) if number > 0 else [0]
         for kappa in newrange( self.density_matrix.shape[0]):
             electron_energy = 0.00
+            
+            if kappa > len(self.generate_superset(0)):
+                break
+            
             state = self.ket(kappa) 
             
             norm_squared    = np.dot(state.T, state)
@@ -209,7 +201,8 @@ class igfwl_vibrational(igfwl):
         #print "Density Matrix: \n", self.density_matrix
     def calculate_q(self): 
         factorial = lambda xx: scspecial.factorial(xx)
-        newrange = lambda(number): range(number) if number > 0 else [0]
+        
+        newrange = lambda(number): range(number+1) if number > 0 else [0]
         for x in newrange(self.mo):
             for y in newrange(self.mo):
                 if y <= x and y%2 == x%2:
@@ -217,8 +210,7 @@ class igfwl_vibrational(igfwl):
         #print self.tensor_q
     def calculate_p(self):  
         comb = lambda nn, kk: scmisc.comb(nn,kk)
-        newrange = lambda(number): range(number) if number > 0 else [0]
-        
+        newrange = lambda(number): range(number+1) if number > 0 else [0]
         for n in newrange(self.np):
             for m in newrange(self.np):
                 for y in newrange(self.mo):
@@ -234,26 +226,29 @@ class igfwl_vibrational(igfwl):
             
             list_advanced = []
             list_retarded = []
-            newrange = lambda(number): range(number) if number > 0 else [0]
-            
-            for m in newrange(self.np):
-                for n in newrange(self.np): 
-                    for x in newrange(self.mo):
-                        xterm = self.density_matrix[lam, m, n] * (self.pec * self.pe )**x
-                        x_sum = 0.0
+            newrange = lambda(number): range(number+1) if number > 0 else [0]
+            print "G+- for %d" % lam
+            for x in newrange(self.mo):
+                m_sum = 0.0
+                for m in newrange(self.np):
+                    n_sum = 0.0
+                    for n in newrange(self.np): 
+                        rho = self.density_matrix[lam, m, n]
+                        y_sum = 0.0
                         for y in newrange(x):
-                            if y%2 == x%2:
-                                yterm = self.tensor_q[x,y]
-                                y_sum = 0.0
+                            if y%2 == x%2: 
+                                p_sum = 0.0
                                 for p in newrange(y):
                                     if n - p > 0 and m-y+p > 0:
-                                        y_sum += self.tensor_p[m,n,y,p] * self.overlap_matrix[n-p, m-y+p]
-                                x_sum += yterm * y_sum
-                        
-                        x_coefficient = xterm * x_sum   
-                        
-                        list_advanced.append( lambda energy: (ad_gf(energy)) **(x+1) * x_coefficient )
-                        list_retarded.append( lambda energy: (ret_gf(energy))**(x+1) * x_coefficient )
+                                        p_sum += self.tensor_p[m,n,y,p] * self.overlap_matrix[n-p, m-y+p]
+                                y_sum += self.tensor_q[x,y] * p_sum
+                        n_sum += y_sum * rho
+                    m_sum += n_sum
+                    
+                print x, ((self.pec * self.pe )**x)*m_sum
+                
+                list_advanced.append( lambda energy: (ad_gf(energy)) **(x+1)  * ((self.pec * self.pe )**x)* m_sum )
+                list_retarded.append( lambda energy: (ret_gf(energy))**(x+1) * ((self.pec * self.pe )**x)* m_sum )
                          
                           
             final_retarded = lambda ee: np.sum([retarded(ee) for retarded in list_retarded], axis=0)

@@ -19,7 +19,7 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 2
+plotting_mode = 0
 #paper values
 alpha = 0.74
 tau = 0.0241

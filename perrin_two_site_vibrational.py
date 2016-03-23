@@ -8,7 +8,7 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 2
+plotting_mode = 0
 
 alpha = 0.74
 tau = 0.0241
@@ -50,7 +50,6 @@ gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
 beta = 0.05 * 150
-
 
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 

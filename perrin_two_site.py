@@ -77,7 +77,8 @@ if plotting_mode == 0 or plotting_mode == 2:
         transmission += calculation.transport_channel(i, epsilon)
     
     maximum = 1.2 * np.max(transmission)
-    plt.semilogy(epsilon, transmission, 'g-')   
+    #plt.semilogy(epsilon, transmission, 'g-')   
+    plt.plot(epsilon, transmission, 'g-')   
      
     
     title = "Transmission"

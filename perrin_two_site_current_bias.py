@@ -38,7 +38,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 500
+beta = 0.05 * 150
 
 biaswindow = np.linspace(bias_left, bias_right, bias_res)
     
@@ -90,7 +90,7 @@ plt.plot(biaswindow, current, 'g-')
  
 
 title = "Current versus bias"
-xlabel = "Energy $\\epsilon$"
+xlabel = "Bias $V_b$"
 ylabel = "$I(V_b)$"
  
 plt.ylim([minimum, maximum])
@@ -99,7 +99,7 @@ plt.ylabel(ylabel, fontsize=30)
 
 plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
     alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
-plt.legend()
+#plt.legend()
 
 
 if plotting_mode == 2 or plotting_mode == 3:
