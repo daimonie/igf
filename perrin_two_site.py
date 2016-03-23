@@ -8,7 +8,7 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 0
+plotting_mode = 2
 
 alpha = 0.74
 tau = 0.0241
@@ -73,25 +73,31 @@ if plotting_mode == 0 or plotting_mode == 2:
     
     transmission = epsilon*0
     
-    for i in calculation.generate_superset(0):
-        transmission += calculation.transport_channel(i, epsilon)
+    chances = calculation.distribution()
+    print chances
+    print np.sum(chances)
+    for k in calculation.generate_superset(0):
+        this_channel = chances[k] * calculation.transport_channel(k, epsilon)
+        print "P[k]=%.3f,\t%.3f\t%.3f" % (chances[k], np.min(this_channel), np.max(this_channel))
+        transmission += this_channel
     
     maximum = 1.2 * np.max(transmission)
     #plt.semilogy(epsilon, transmission, 'g-')   
-    plt.plot(epsilon, transmission, 'g-')   
-     
-    
     title = "Transmission"
     xlabel = "Energy $\\epsilon$"
     ylabel = "Transmission"
+    
+    plt.plot(epsilon, transmission, 'g-',label="Many-body %s" % title)   
+     
+    
     
 elif plotting_mode == 1 or plotting_mode == 3:
     
     
     spectral = epsilon*0 
     
-    for i in calculation.generate_superset(0):
-        spectral += calculation.spectral_channel(i, epsilon)
+    for k in calculation.generate_superset(0):
+        spectral += calculation.spectral_channel(k, epsilon)
     
     maximum = 1.2 * np.max(spectral)
     plt.plot(epsilon, spectral, 'g-', label="sum")  

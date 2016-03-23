@@ -34,12 +34,9 @@ class igfwl(object):
         """This gives us the single-particle Green's function with some background."""
         
         mu_background = np.diag([self.epsilon[i][i] + np.dot( self.u[i], background) for i in range(0,self.dim)])
-        
-        scale = np.sqrt(float(len(self.generate_superset(0))))
-        scale = 1.00
-        
-        single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)/scale
-        single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)/scale
+         
+        single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)
+        single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)
         
         return single_retarded, single_advanced
     def generate_superset(self, number):
@@ -91,25 +88,29 @@ class igfwl(object):
         
         return probability
     
-    def transport_channel_ij(self, i, chances, epsilon):
-        state = self.ket( i ) 
-        chance = chances[i]  
-        ret_gf, ad_gf = self.singleparticlebackground( state ) 
-         
-        transport_k_ij = [np.trace(chance *np.dot(self.gamma_left, ( np.dot(
+    def transport_channel_ij(self, i, j, chances, epsilon):
+        state_i = self.ket( i ) 
+        state_j = self.ket( j ) 
+                 
+        __, ad_gf = self.singleparticlebackground( state_i ) 
+        ret_gf, __ = self.singleparticlebackground( state_j ) 
+        
+        
+        transport_k_ij = [np.trace(chances[i] * chances[j] * np.dot(self.gamma_left, ( np.dot(
             ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon]
+        
         return transport_k_ij
     def transport_channel(self, k, epsilon):
         """Returns the transmission function for the many body state k."""
-        advanced_gf = np.zeros((self.dim, self.dim))
-        retarded_gf = np.zeros((self.dim, self.dim))
-        
         transport_k = 0 * epsilon
         
         chances = self.distribution()
-        for i in self.generate_superset(k):
-                if chances[i] > self.cutoff_chance:
-                    transport_k += np.real( self.transport_channel_ij(i, chances, epsilon))
+        
+        for i in self.generate_superset(k): 
+            if chances[i] > self.cutoff_chance:
+                for j in self.generate_superset(k): 
+                    if chances[j] > self.cutoff_chance:  
+                        transport_k += np.real( self.transport_channel_ij(i, j, chances, epsilon))
         return transport_k
     def spectral_channel(self, k, epsilon):
         """Returns the transmission function for the many body state k."""
