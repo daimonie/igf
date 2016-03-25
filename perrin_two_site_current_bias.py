@@ -38,7 +38,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 150
+beta = 0.05 * 300
 
 biaswindow = np.linspace(bias_left, bias_right, bias_res)
     

@@ -34,7 +34,6 @@ class igfwl(object):
         """This gives us the single-particle Green's function with some background."""
         
         mu_background = np.diag([self.epsilon[i][i] + np.dot( self.u[i], background) for i in range(0,self.dim)])
-         
         single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)
         single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)
         
@@ -44,8 +43,6 @@ class igfwl(object):
         
         superset = []
         for i in range(0, 2**(self.dim)):
-            #Note: number == i is excluded by the P_kk P_ll rule anyway.
-            #if  i != number and (number & i)==number:
             if  (number & i)==number:
                 superset.append(i)
         return superset
@@ -84,8 +81,8 @@ class igfwl(object):
         energy_vector.insert(0, 0.0)
 
         probability = np.exp( np.multiply(-self.beta, energy_vector))
-        probability /= probability.sum()
         
+        probability /= probability.sum()
         return probability
     
     def transport_channel_ij(self, i, j, chances, epsilon):
@@ -95,9 +92,12 @@ class igfwl(object):
         __, ad_gf = self.singleparticlebackground( state_i ) 
         ret_gf, __ = self.singleparticlebackground( state_j ) 
         
+        transport_k_ij = np.real([np.trace(np.dot(self.gamma_left, ( np.dot(
+            ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon])
         
-        transport_k_ij = [np.trace(chances[i] * chances[j] * np.dot(self.gamma_left, ( np.dot(
-            ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon]
+        
+        print "%d\t%d\t%.3f\t%.3f\t%2.3f" % (i,j,np.min(transport_k_ij), np.max(transport_k_ij), chances[i]*chances[j])
+        transport_k_ij *= chances[i] * chances[j]
         
         return transport_k_ij
     def transport_channel(self, k, epsilon):
@@ -111,9 +111,10 @@ class igfwl(object):
                 for j in self.generate_superset(k): 
                     if chances[j] > self.cutoff_chance:  
                         transport_k += np.real( self.transport_channel_ij(i, j, chances, epsilon))
-        return transport_k
+        return transport_k * chances[k]
+        
     def spectral_channel(self, k, epsilon):
-        """Returns the transmission function for the many body state k."""
+        """Returns the spectral function for the many body state k."""
         raise Exception("Needs to be redone")
 #################
 class igfwl_vibrational(igfwl):

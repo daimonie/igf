@@ -31,7 +31,7 @@ capacitive = tau*0
 alpha=0.48
 tau=0.0091
 gamma=0.0242
-capacitive = tau * 4 * 9
+capacitive = .0
 
 fermi = -4.8 #all numbers are relative to fermi (set to zero), but comparison plots are easier if you use it
 
@@ -60,7 +60,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 50
+beta = 12.5
 
 tick_min = 0.0
 tick_max = 1.0

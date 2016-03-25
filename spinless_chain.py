@@ -20,8 +20,8 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 # Normally I use argparse for this, but due to sverely limited computational 
 #   resources, i.e. a computer that should've been retired years ago, I am
 #   working online (Get Data Joy) and can't use commandline arguments.   
-plotting_mode = 2
-chain_length = 2
+plotting_mode = 0
+chain_length = 4
 
 capacitive_strength = 0.0
 tunnel_strength = 0.5
@@ -36,7 +36,7 @@ epsilon_right = 2.5
 resolution = 10000
 
 #Inverse temperature (units same as the others)
-param_beta = 0.05 * 50000
+param_beta = 0.05 *50
 
 parser	= argparse.ArgumentParser(prog="N-chain",
   description = "Calculates tranmission or spectral function through a chain of N elements.")  
@@ -177,9 +177,8 @@ plt.rc('font', family='serif')
 if plotting_mode == 0 or plotting_mode == 2:
     
     #It is unfeasible to plot all the channels. Sum them up!
-    
+    print calculation.distribution()
     transmission = epsilon*0
-    
     for i in calculation.generate_superset(0):
         transmission += calculation.transport_channel(i, epsilon)
     

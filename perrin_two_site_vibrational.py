@@ -17,7 +17,7 @@ levels = -0.25
 bias = 0.15 #in eV
 capacitive = 0.0
 
-electron_phonon_coupling = 1.5
+electron_phonon_coupling = 1.5*0
 phonon_energy = 0.015 # just a low number.
 
 number_of_phonons = 5 

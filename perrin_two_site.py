@@ -8,14 +8,14 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 2
+plotting_mode = 0
 
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
 levels = -0.25
-bias = 0.15 #in eV
-capacitive = 0.0
+bias = 0.00 #in eV
+capacitive = 0.2
 
 hamiltonian = np.zeros((2,2))
 
@@ -26,8 +26,9 @@ tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
-epsilon_left = - 2.0
-epsilon_right = 2.0
+#change these numbers based on visual inspection
+epsilon_left = -0.4
+epsilon_right = -0.15
 epsilon_res = 10000
 
 interaction = np.zeros((2,2))
@@ -41,7 +42,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 50
+beta = 0.05 * 50*5
 
 
 calculation = igfwl(
@@ -74,13 +75,14 @@ if plotting_mode == 0 or plotting_mode == 2:
     transmission = epsilon*0
     
     chances = calculation.distribution()
-    print chances
-    print np.sum(chances)
-    for k in calculation.generate_superset(0):
-        this_channel = chances[k] * calculation.transport_channel(k, epsilon)
-        print "P[k]=%.3f,\t%.3f\t%.3f" % (chances[k], np.min(this_channel), np.max(this_channel))
-        transmission += this_channel
     
+    for k in calculation.generate_superset(0):
+        this_channel = calculation.transport_channel(k, epsilon)
+        print "P[%d]=%.3f,\t%.3f\t%.3f" % (k, chances[k], np.min(this_channel), np.max(this_channel))
+        transmission += this_channel
+    print "Total\t%2.3f\t%2.3f" % (np.min(transmission), np.max(transmission))
+    
+    transmission /= .355
     maximum = 1.2 * np.max(transmission)
     #plt.semilogy(epsilon, transmission, 'g-')   
     title = "Transmission"
