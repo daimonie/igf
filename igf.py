@@ -110,12 +110,27 @@ class igfwl(object):
             if chances[i] > self.cutoff_chance:
                 for j in self.generate_superset(k): 
                     if chances[j] > self.cutoff_chance:  
-                        transport_k += np.real( self.transport_channel_ij(i, j, chances, epsilon))
+                        transport_k += np.real( self.transport_channel_ij(i, j, chances, epsilon)) 
         return transport_k * chances[k]
-        
+    def full_transmission(self, epsilon):
+        transport = 0 * epsilon
+        for k in self.generate_superset(0):
+            transport += self.transport_channel(k, epsilon)
+        scale = self.scaler()
+        print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale
+        transport /= scale
+        return transport
     def spectral_channel(self, k, epsilon):
         """Returns the spectral function for the many body state k."""
         raise Exception("Needs to be redone")
+    def scaler(self):
+        scale = 0.0
+        chances = self.distribution()
+        for k in self.generate_superset(0):
+            for l in self.generate_superset(k):
+                for ll in self.generate_superset(k):
+                    scale += chances[k] * chances[l] * chances[ll]
+        return scale
 #################
 class igfwl_vibrational(igfwl):
     def __init__(self, 
@@ -283,9 +298,13 @@ class igfwl_vibrational(igfwl):
             print >> sys.stderr, "Calculating channel %d of %d" % (lam, len(superset))
             transport += self.transport_channel(lam, epsilon)
         
+        scale = self.scaler()
+        print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale
+        transport /= scale
+        
         if np.min(transport) < 0:
             print >> sys.stderr, "Warning: Transport < 0."
             return np.abs(transport)
         
         return transport
-#######################3
+#######################

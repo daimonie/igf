@@ -20,7 +20,7 @@ print "Python version is %s.%s.%s., should be >2.7.10 for us. \n" % (sys.version
 # Normally I use argparse for this, but due to sverely limited computational 
 #   resources, i.e. a computer that should've been retired years ago, I am
 #   working online (Get Data Joy) and can't use commandline arguments.   
-plotting_mode = 0
+plotting_mode = 2
 chain_length = 4
 
 capacitive_strength = 0.0
