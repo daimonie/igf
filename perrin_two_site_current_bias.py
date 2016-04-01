@@ -13,18 +13,19 @@ plotting_mode = 0
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
-levels = -0.0 #Fig 4b, Perrin(2014)
-capacitive = 0.45 
+levels = -0.05*4 #Fig 4b, Perrin(2014)
+
+capacitive = 0.05*4
 
 tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
 # left, right are now +- eV/2, see Fig 4b in Perrin(2014)
-epsilon_res = 100
+epsilon_res = 1000
 
-bias_left = -1.0
-bias_right = 1.0
+bias_left = -1
+bias_right = 1
 bias_res = 100
 
 interaction = np.zeros((2,2))
@@ -38,7 +39,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 300
+beta = 250.00
 
 biaswindow = np.linspace(bias_left, bias_right, bias_res)
     
@@ -58,23 +59,19 @@ for bias in biaswindow:
         gamma_right, 
         beta
     )
-    
     epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
     
     #It is unfeasible to plot all the channels. Sum them up!
     
-    transmission = epsilon*0
-    
-    for i in calculation.generate_superset(0):
-        transmission += calculation.transport_channel(i, epsilon)
-    
+    transmission = calculation.full_transmission(epsilon)
+ 
     current.append( [ np.trapz(transmission, epsilon) ])
-
 
 current = np.array(current)
 minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
+print "Max current %2.3e at epsilon_res %d bias_res %d" % (maximum, epsilon_res,bias_res)
 
 
 plt.figure(figsize=(10, 10), dpi=1080)

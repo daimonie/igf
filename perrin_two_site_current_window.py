@@ -72,12 +72,8 @@ plt.rc('font', family='serif')
 maximum = 0.2
 
 #It is unfeasible to plot all the channels. Sum them up!
-
-transmission = epsilon*0
-
-for i in calculation.generate_superset(0):
-    transmission += calculation.transport_channel(i, epsilon)
-
+transmission = calculation.full_transmission(epsilon)
+    
 current = np.array([ np.trapz(transmission[range(i)], epsilon[range(i)]) for i in range(epsilon_res)])
 
 maximum = 1.2 * np.max(current)

@@ -8,14 +8,17 @@ import argparse as argparse
 import time
 global_time_start = time.time()
 
-plotting_mode = 2
+plotting_mode = 0
 
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
 levels = -0.25
-bias = 0.00 #in eV
-capacitive = 0.2*0
+bias = 0.25*4 #in eV
+capacitive = .05*4
+
+#levels set to zero-
+levels = -0.05
 
 hamiltonian = np.zeros((2,2))
 
@@ -27,8 +30,8 @@ tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
 #change these numbers based on visual inspection
-epsilon_left = -0.4
-epsilon_right = -0.15
+epsilon_left = -.8
+epsilon_right = .8
 epsilon_res = 10000
 
 interaction = np.zeros((2,2))
@@ -42,7 +45,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 50 #*5
+beta = 250.0#0.05 * 300
 
 
 calculation = igfwl(
@@ -53,6 +56,11 @@ calculation = igfwl(
     gamma_right, 
     beta
 )
+
+print "Chance overview:"
+p = calculation.distribution()
+for i in calculation.generate_superset(0):
+    print "%d\t%.3e" % (i, p[i])
 
 
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
@@ -67,6 +75,7 @@ xlabel = ""
 ylabel = ""
 plt.rc('font', family='serif')
 
+minimum = 0.0
 maximum = 0.2
 if plotting_mode == 0 or plotting_mode == 2:
     
@@ -78,16 +87,17 @@ if plotting_mode == 0 or plotting_mode == 2:
         
     print "Total\t%2.3f\t%2.3f" % (np.min(transmission), np.max(transmission))
     print "Scaler:\t%2.3f" % scaler
-    
-    #transmission /= .355
+     
     maximum = 1.2 * np.max(transmission)
-    #plt.semilogy(epsilon, transmission, 'g-')   
     title = "Transmission"
     xlabel = "Energy $\\epsilon$"
     ylabel = "Transmission"
     
-    plt.plot(epsilon, transmission * scaler, 'r--',label="scaler * (Many-body %s)" % title)   
-    plt.plot(epsilon, transmission, 'g-',label="Many-body %s" % title)   
+    minimum = 1e-6
+    #plt.semilogy(epsilon, transmission , 'r--',label="scaled(Many-body %s)" % title)   
+    #plt.semilogy(epsilon, transmission * scaler, 'g-',label="Many-body %s" % title)   
+    #plt.plot(epsilon, transmission , 'r--',label="scaled(Many-body %s)" % title)   
+    plt.plot(epsilon, transmission * scaler, 'g-',label="Many-body %s" % title)   
      
     
     
@@ -106,19 +116,19 @@ elif plotting_mode == 1 or plotting_mode == 3:
     xlabel = "Energy $\\epsilon$"
     ylabel = "Spectral"
 
-plt.ylim([0, maximum])
+plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
 
 plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
     alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
-plt.legend()
+#plt.legend()
 
 
 non_int = hamiltonian + tunnel
 
 values,_ = np.linalg.eig(non_int)
-print values
+print "eigs:", values
 
 height = values*0
 if plotting_mode == 0 or plotting_mode == 2:

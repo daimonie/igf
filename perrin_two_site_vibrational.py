@@ -17,11 +17,11 @@ levels = -0.25
 bias = 0.15 #in eV
 capacitive = 0.0
 
-electron_phonon_coupling = 1.5*0
+electron_phonon_coupling = .015*100
 phonon_energy = 0.015 # just a low number.
 
 number_of_phonons = 5 
-perturbation_expansion_order = 7
+perturbation_expansion_order = 15
 
 cutoff_chance = 1e-4
 
@@ -49,7 +49,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 0.05 * 150
+beta = 250.0
 
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 
@@ -103,12 +103,19 @@ maximum = 1.0
 minimum = 1.2 * np.min([ np.min(transmission), np.min(old_transmission)])
 maximum = 1.2 * np.max([ np.max(transmission), np.max(old_transmission)])
 
-print np.min(transmission), np.max(transmission)
-print np.min(old_transmission), np.max(old_transmission)
+mit = np.min(transmission)
+mat = np.max(transmission)
+mot = np.min(old_transmission)
+maot = np.max(old_transmission)
 
-plt.semilogy(epsilon, transmission, 'r-', label="vibrational expansion, order=%d" % (perturbation_expansion_order))    
-plt.semilogy(epsilon, old_transmission, 'k--', label="ignore vibrations")   
-
+print "New %.3e < T < %.3e" % (mit, mat)
+print "Old %.3e < T < %.3e" % (mot, maot)
+if mit > 0 and mat > 0 and mot > 0 and maot > 0:
+    plt.semilogy(epsilon, transmission, 'r-', label="vibrational expansion, order=%d" % (perturbation_expansion_order))    
+    plt.semilogy(epsilon, old_transmission, 'k--', label="ignore vibrations")   
+else:
+        plt.plot(epsilon, transmission, 'r-', label="vibrational expansion, order=%d" % (perturbation_expansion_order))    
+        plt.plot(epsilon, old_transmission, 'k--', label="ignore vibrations")   
 plt.legend()
 
 title = "Transmission, $\\lambda=%.3f" % electron_phonon_coupling

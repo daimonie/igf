@@ -73,13 +73,13 @@ class igfwl(object):
             norm_squared    = np.dot(state.T, state)
             
             if norm_squared > 0: #zero is appended at the end
-                energy          = np.dot(state.T, np.dot( self.epsilon, state)) / norm_squared
-                interaction     = np.dot(state.T, np.dot( self.u, state)) / norm_squared
+                energy          = np.dot(state.T, np.dot( self.epsilon, state))
+                interaction     = np.dot(state.T, np.dot( self.u, state))
                 
                 energy_vector.append( energy + interaction )
                 
         energy_vector.insert(0, 0.0)
-
+        
         probability = np.exp( np.multiply(-self.beta, energy_vector))
         
         probability /= probability.sum()
@@ -96,7 +96,7 @@ class igfwl(object):
             ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon])
         
         
-        print "%d\t%d\t%.3f\t%.3f\t%2.3f" % (i,j,np.min(transport_k_ij), np.max(transport_k_ij), chances[i]*chances[j])
+        #print "%d\t%d\t%.3f\t%.3f\t%2.3f" % (i,j,np.min(transport_k_ij), np.max(transport_k_ij), chances[i]*chances[j])
         transport_k_ij *= chances[i] * chances[j]
         
         return transport_k_ij
@@ -117,7 +117,7 @@ class igfwl(object):
         for k in self.generate_superset(0):
             transport += self.transport_channel(k, epsilon)
         scale = self.scaler()
-        print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale
+        #print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale
         transport /= scale
         return transport
     def spectral_channel(self, k, epsilon):
@@ -208,7 +208,7 @@ class igfwl_vibrational(igfwl):
             norm_squared    = np.dot(state.T, state)
             
             if norm_squared > 0: 
-                electron_energy = np.dot(state.T, np.dot( self.epsilon, state)) / norm_squared 
+                electron_energy = np.dot(state.T, np.dot( self.epsilon, state)) 
             for n in newrange(self.np):
                 for m in newrange(self.np):
                     self.density_matrix[kappa,n,m] = np.exp(- self.beta * ( electron_energy + self.pe * (n+m)))
@@ -244,7 +244,7 @@ class igfwl_vibrational(igfwl):
             list_advanced = []
             list_retarded = []
             newrange = lambda(number): range(number+1) if number > 0 else [0]
-            print "G+- for %d" % lam
+            #print "G+- for %d" % lam
             for x in newrange(self.mo):
                 m_sum = 0.0
                 for m in newrange(self.np):
@@ -262,8 +262,8 @@ class igfwl_vibrational(igfwl):
                         n_sum += y_sum * rho
                     m_sum += n_sum
                     
-                print x, ((self.pec * self.pe )**x)*m_sum
-                
+                #print x, ((self.pec * self.pe )**x)*m_sum
+                print x, m_sum
                 list_advanced.append( lambda energy: (ad_gf(energy)) **(x+1)  * ((self.pec * self.pe )**x)* m_sum )
                 list_retarded.append( lambda energy: (ret_gf(energy))**(x+1) * ((self.pec * self.pe )**x)* m_sum )
                          
@@ -281,10 +281,12 @@ class igfwl_vibrational(igfwl):
         superset = self.generate_superset(k)
         
         for i in superset:
-                state = self.ket( i ) 
-                 
-                retarded, advanced = self.greens_functions(i)
+            for j in superset: 
+                retarded, _ = self.greens_functions(i)
+                _, advanced = self.greens_functions(j)
             
+                ##here?
+                #print p[i], p[j], retarded, advanced, self.gamma_left, self.gamma_right
                 transport_k_ij = [np.trace(np.dot(self.gamma_left, ( np.dot(
                     retarded(ee),  np.dot(self.gamma_right, advanced(ee)))))) for ee in epsilon]
                 
@@ -296,7 +298,7 @@ class igfwl_vibrational(igfwl):
         
         for lam in superset:
             print >> sys.stderr, "Calculating channel %d of %d" % (lam, len(superset))
-            transport += self.transport_channel(lam, epsilon)
+            transport +=self.transport_channel(lam, epsilon)
         
         scale = self.scaler()
         print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale
