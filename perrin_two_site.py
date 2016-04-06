@@ -13,12 +13,12 @@ plotting_mode = 0
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
-levels = -0.25
-bias = 0.25*4 #in eV
-capacitive = .05*4
+bias = 0.25*2
+capacitive = .15
 
 #levels set to zero-
-levels = -0.05
+#levels = -0.05
+levels=-capacitive
 
 hamiltonian = np.zeros((2,2))
 
@@ -30,8 +30,8 @@ tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
 #change these numbers based on visual inspection
-epsilon_left = -.8
-epsilon_right = .8
+epsilon_left = -.6
+epsilon_right = .4
 epsilon_res = 10000
 
 interaction = np.zeros((2,2))
@@ -45,7 +45,7 @@ gamma_left[0][0] = gamma
 gamma_right = np.zeros((2,2))
 gamma_right[1][1] = gamma
 
-beta = 250.0#0.05 * 300
+beta = 250.0*1
 
 
 calculation = igfwl(

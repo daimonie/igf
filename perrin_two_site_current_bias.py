@@ -13,9 +13,9 @@ plotting_mode = 0
 alpha = 0.74
 tau = 0.0241
 gamma = 0.0102
-levels = -0.05*4 #Fig 4b, Perrin(2014)
+levels = -0.05*3*0 #Fig 4b, Perrin(2014)
 
-capacitive = 0.05*4
+capacitive = 0.05*3*0
 
 tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
