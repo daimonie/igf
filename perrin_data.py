@@ -58,7 +58,7 @@ def lsqe(x, bias_array, current_array):
     xlevels = x[2]
     xscale = x[3] * pc["elementary charge over h"][0]
     current_fit = []
-    
+    print x
     for bias in bias_array:
         epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
         
@@ -109,7 +109,8 @@ def lsqe(x, bias_array, current_array):
 optimizer = minimize( lsqe, [tau, gamma, levels, 1.0], args=(bias, current),
     jac=False, method='L-BFGS-B', options={'disp': False}, tol = 1e-6)
     
-x = optimizer.x  
+x = optimizer.x
+print "Finally: ", x  
 
 plt.figure(figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=30)
