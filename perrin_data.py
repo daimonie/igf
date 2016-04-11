@@ -130,7 +130,7 @@ plt.title( "%s" % (title), fontsize=15)
 plt.plot(bias, current, 'g-', label='experiment') 
 
 
-plt.show()
+plt.savefig("perrin_data.png")
     
 ###############
 global_time_end = time.time ()
