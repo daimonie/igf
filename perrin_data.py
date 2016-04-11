@@ -61,7 +61,7 @@ def lsqe(x, bias_array, current_array):
     print x
     for bias in bias_array:
         epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
-        
+	print "\t V=%.3f" % bias        
         tunnel = np.zeros((2,2))
         tunnel[0][1] = -xtau
         tunnel[1][0] = -xtau 
@@ -107,7 +107,7 @@ def lsqe(x, bias_array, current_array):
     return sum_least_squares
 ###
 optimizer = minimize( lsqe, [tau, gamma, levels, 1.0], args=(bias, current),
-    jac=False, method='L-BFGS-B', options={'disp': False}, tol = 1e-6)
+    jac=False, method='L-BFGS-B', options={'disp': False, 'eps': np.array([tau/20.00, gamma/20.00, levels, 1e-5])}, tol = 1e-6)
     
 x = optimizer.x
 print "Finally: ", x  
