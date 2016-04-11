@@ -2,9 +2,6 @@ import numpy as np
 import scipy.interpolate as si
 from scipy.optimize import minimize
 from scipy.constants import physical_constants as pc
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.mlab import griddata 
 from igf import *
 import sys as sys
 #Command line arguments.
@@ -61,7 +58,7 @@ def lsqe(x, bias_array, current_array):
     print x
     for bias in bias_array:
         epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
-	print "\t V=%.3f" % bias        
+        print "\t V=%.4f" % bias        
         tunnel = np.zeros((2,2))
         tunnel[0][1] = -xtau
         tunnel[1][0] = -xtau 
@@ -111,27 +108,6 @@ optimizer = minimize( lsqe, [tau, gamma, levels, 1.0], args=(bias, current),
     
 x = optimizer.x
 print "Finally: ", x  
-
-plt.figure(figsize=(10, 10), dpi=1080)
-plt.xticks(fontsize=30)
-plt.yticks(fontsize=30)
-
-xlabel = "Bias $V$"
-ylabel = "Current $\\left[nA\\right]$"
-title  = "%s, removed linear background" %  first_file
-plt.rc('font', family='serif')
  
- 
-plt.xlabel(xlabel, fontsize=30)
-plt.ylabel(ylabel, fontsize=30)
-
-plt.title( "%s" % (title), fontsize=15)     
- 
-plt.plot(bias, current, 'g-', label='experiment') 
-
-
-plt.savefig("perrin_data.png")
-    
-###############
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
