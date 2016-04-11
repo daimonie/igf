@@ -20,24 +20,24 @@ bias_left = -1
 bias_right = 1
 bias_res = 100
 
-epsilon_res = 250
+epsilon_res = 2500
 
 param_type = 'e'
 param_left = -1e-6
 param_right = -0.5
-param_res = 40
+param_res = 2500
 
 
 array_param = []
 array_bias = []    
-array_current = [] 
+array_distribution = [] 
 
 tick_num = 100
-tick_max = 'auto'
-tick_min = 'auto'
+tick_max = 0.00
+tick_min = 3.00
 #tick_min = -tick_max
 
-cmap = plt.get_cmap('afmhot') 
+cmap = plt.get_cmap('ocean') 
 ###
 biaswindow = np.linspace(bias_left, bias_right, bias_res) 
 param_space = np.linspace(param_left,param_right,param_res)
@@ -45,7 +45,7 @@ param_space = np.linspace(param_left,param_right,param_res)
 for param in param_space:
     print "Param[%s]:\t%.3f" % (param_type, param)
     
-    bias_array_current = [] 
+    bias_array_distribution = [] 
     for bias in biaswindow:
 
         alpha = 0.74
@@ -97,47 +97,45 @@ for param in param_space:
         gamma_right, 
         beta
         )
-        epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
 
-        #It is unfeasible to plot all the channels. Sum them up!
-
-        transmission = calculation.full_transmission(epsilon)
+        chances = calculation.distribution()
         
-        current = np.trapz(transmission, epsilon)
-        
+        chance_value = 0.00
+        for i in calculation.generate_superset(0):
+            chance_value += i*chances[i]
+            
         array_bias.append(bias)
         array_param.append(param)
-        bias_array_current.append(current)
+        bias_array_distribution.append(chance_value)
         ###
         
-    bias_array_current = np.array(bias_array_current) / np.max(bias_array_current)
+    bias_array_distribution = np.array(bias_array_distribution)
     
-    array_current.extend(bias_array_current)
+    array_distribution.extend(bias_array_distribution)
          
-
 [mesh_bias, mesh_param] = np.meshgrid(
     biaswindow,
     param_space
 )
  
-mesh_current = griddata(
+mesh_distribution = griddata(
     array_bias,
     array_param,
-    array_current,
+    array_distribution,
     mesh_bias,
     mesh_param,
     interp='linear')
 
 if(tick_max == 'auto'): 
-    tick_max = np.max(mesh_current)
-    tick_min = np.min(mesh_current)
+    tick_max = np.max(mesh_distribution)
+    tick_min = np.min(mesh_distribution)
 fig, ax = plt.subplots(figsize=(25, 15), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30) 
      
 color_levels = MaxNLocator(nbins=tick_num).tick_values(tick_min, tick_max) 
 
-cf = ax.contourf(mesh_bias, mesh_param, mesh_current, cmap=cmap, levels=color_levels)
+cf = ax.contourf(mesh_bias, mesh_param, mesh_distribution, cmap=cmap, levels=color_levels)
 cb = fig.colorbar(cf, ax=ax, shrink=0.9, pad=0.15)    
 
 for t in cb.ax.get_yticklabels():
