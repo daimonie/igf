@@ -31,7 +31,7 @@ capacitive = tau*0
 alpha=0.48
 tau=0.0091
 gamma=0.0242
-capacitive = .45
+capacitive = .45*1
 
 fermi = -4.8 #all numbers are relative to fermi (set to zero), but comparison plots are easier if you use it
 
@@ -40,8 +40,8 @@ tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
-epsilon_right = .2
-epsilon_left = -.7
+epsilon_right = 1#.2
+epsilon_left = -1#-.7
 epsilon_res = 100
 
 bias_left = -1
