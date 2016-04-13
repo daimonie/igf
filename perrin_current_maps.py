@@ -52,7 +52,7 @@ for param in param_space:
         tau = 0.0241
         gamma = 0.0102
         levels = -0.05
-        capacitive = 0.15
+        capacitive = 0.15*0
         beta = 250.00
         
         if param_type == 'e':
