@@ -106,7 +106,7 @@ for levels in np.array([0.00, -0.10, -0.25, -0.45]):
     for tau in np.array([2.0, 6.0, 40.0])/1000.0:
         for gamma in np.array([10.0,100.0])/1000.0:
             for alpha in np.array([0.25, 0.50, 0.75, 1.00]):
-                for capacitive in np.array([0.00, -0.10, -0.25, -0.45]):
+                for capacitive in np.array([0.00, 0.10, 0.25, 0.45]):
                     x = np.array([tau, gamma, levels, alpha, capacitive])
                     scaler, error, fit_current = lsqe(x, bias, current)
                     #scaler = error = 1
