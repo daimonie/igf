@@ -7,8 +7,8 @@ import sys as sys
 #Command line arguments.
 import argparse as argparse  
 import time
-import matplotlib
-import matplotlib.pyplot as plt
+#import matplotlib
+#import matplotlib.pyplot as plt
 from experiment import *
 ###
 
@@ -119,23 +119,23 @@ for levels in np.array([0.00, -0.10, -0.25, -0.45]):
                         min_x = x
                         min_scaler = scaler  
 ###                    
-plt.figure(figsize=(10, 10), dpi=1080)
-plt.xticks(fontsize=30)
-plt.yticks(fontsize=30)
+#plt.figure(figsize=(10, 10), dpi=1080)
+#plt.xticks(fontsize=30)
+#plt.yticks(fontsize=30)
  
 
-plt.plot(bias, fitted_current, 'g-', )   
-plt.plot(bias, current, 'r--')   
+#plt.plot(bias, fitted_current, 'g-', )   
+#plt.plot(bias, current, 'r--')   
 
-xlabel = "Bias voltage $V_B$"
-ylabel = "Current $I$"
-plt.rc('font', family='serif') 
+#xlabel = "Bias voltage $V_B$"
+#ylabel = "Current $I$"
+#plt.rc('font', family='serif') 
 
-plt.xlabel(xlabel, fontsize=30)
-plt.ylabel(ylabel, fontsize=30)
+#plt.xlabel(xlabel, fontsize=30)
+#plt.ylabel(ylabel, fontsize=30)
 
-plt.title("%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t" % (min_x[0], min_x[1], min_x[2], min_x[3], min_x[4], min_scaler, min_error))
-plt.savefig("roughfit.png")
+#plt.title("%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t" % (min_x[0], min_x[1], min_x[2], min_x[3], min_x[4], min_scaler, min_error))
+#plt.savefig("roughfit.png")
 
 
 global_time_end = time.time ()
