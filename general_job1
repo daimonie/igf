@@ -4,5 +4,5 @@
 #PBS -o /qsub_out/output.txt
 #cd $PBS_O_WORKDIR
 
-i=638
+i=640
 python perrin_exp_roughfit.py -s $i >> rough_fit_${i}.txt
