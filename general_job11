@@ -2,7 +2,7 @@
 #PBS -l nodes=1:ppn=1
 #PBS -e /qsub_out/error.txt
 #PBS -o /qsub_out/output.txt
-#cd $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
 
 i=656
 python perrin_exp_roughfit.py -s $i >> rough_fit_${i}.txt
