@@ -12,6 +12,21 @@ import time
 from experiment import *
 ###
 
+parser	= argparse.ArgumentParser(prog="rough fit",
+  description = "Calculates the sum of error squared for a number of parameters..")  
+  
+parser.add_argument(
+    '-s',
+    '--sep',
+    help='File number',
+    action='store',
+    type = int,
+    default = 656
+)   
+args	= parser.parse_args() 
+
+sep = args.sep
+###
 epsilon_res = 1000
 beta = 250
 ###
@@ -67,26 +82,22 @@ def lsqe(x, bias_array, current_array):
         
         xcurrent = np.trapz(transmission, epsilon)
         
-        #if bias_iteration%100==0:
-            #print bias_iteration, bias, xcurrent
-        #bias_iteration += 1
         current_fit.append(xcurrent)
     ###
     current_fit = np.array(current_fit)
-    #print current_fit
-    scale = 1.00#np.max(current) / np.max(current_fit)
+    scale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+
     current_fit *= scale
-    #print current_fit
     
     
-    squares = np.square( current - current_fit)
+    squares = np.square( current_array - current_fit)
     
     sum_least_squares = squares.sum()
     
     return scale, sum_least_squares, current_fit
 ###
 
-exp_file = "exp_data/IV130328_7_656.dat"
+exp_file = "exp_data/IV130328_7_%d.dat" %sep
 
 bias, current = read_experiment(exp_file)
 
@@ -97,11 +108,6 @@ points = 5
 filter = np.ones(points)/points
 current = np.convolve(current, filter, mode='same')
 
-fitted_current = current*0
-
-min_error = float("Inf")
-min_x = np.array([0, 0, 0, 0, 0])
-min_scaler = 1.00
 for levels in np.array([0.00, -0.10, -0.25, -0.45]):
     for tau in np.array([2.0, 6.0, 40.0])/1000.0:
         for gamma in np.array([10.0,100.0])/1000.0:
@@ -109,15 +115,8 @@ for levels in np.array([0.00, -0.10, -0.25, -0.45]):
                 for capacitive in np.array([0.00, 0.10, 0.25, 0.45]):
                     x = np.array([tau, gamma, levels, alpha, capacitive])
                     scaler, error, fit_current = lsqe(x, bias, current)
-                    #scaler = error = 1
                     print "%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3e\t%.3e\t" % (x[0], x[1], x[2], x[3], x[4], scaler, error)
-                    
-                    if min_error == -1 or error < min_error:
-                        print "New minimum error %.3e < %.3e" % (error, min_error)
-                        fitted_current = fit_current
-                        min_error = error
-                        min_x = x
-                        min_scaler = scaler  
+                     
 ###                    
 #plt.figure(figsize=(10, 10), dpi=1080)
 #plt.xticks(fontsize=30)

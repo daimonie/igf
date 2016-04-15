@@ -18,17 +18,13 @@ levels = -0.05*3*0 #Fig 4b, Perrin(2014)
 
 capacitive = 0.05*3*0
 
+levels = -0.25
+capacitive = 0.125
+
 tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
 tunnel[1][0] = -tau
 
-####super weird parameters coming from a rough fit
-tau = 0.002
-gamma = 0.010
-levels=0.000
-alpha = 0.250
-capacitive = -0.45
-###
 # left, right are now +- eV/2, see Fig 4b in Perrin(2014)
 epsilon_res = 1000
 
