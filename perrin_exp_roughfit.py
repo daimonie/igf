@@ -102,7 +102,7 @@ exp_file = "exp_data/IV130328_7_%d.dat" %sep
 bias, current = read_experiment(exp_file)
 
 #make current symmetric
-current = (current + current[::-1])/2.0
+current = (current - current[::-1])/2.0
 
 points = 5 
 filter = np.ones(points)/points

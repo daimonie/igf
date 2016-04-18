@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from scipy.constants import physical_constants as pc
 from igf import *
+from experiment import *
 import sys as sys
 import argparse as argparse  
 import time
@@ -11,11 +12,25 @@ global_time_start = time.time()
 plotting_mode = 0
 
 ###
-filename = "rough_fit_638.txt"
+sep = 648
+
+
+exp_file = "exp_data/IV130328_7_%d.dat" % sep
+
+experimental_bias, experimental_current = read_experiment(exp_file)
+
+#make current symmetric
+experimental_current = (experimental_current - experimental_current[::-1])/2.0
+print "Current should be anti-symmetric; tried (I(x) - I(-x))/2 to make it look nicer.
+points_filter = 5 
+conv_filter = np.ones(points_filter)/points_filter
+experimental_current = np.convolve(experimental_current, conv_filter, mode='same')
+
+filename = "rough_fit_%d.txt" % sep
 row = 198
 
 file_handler = open( filename, "r" );
-data = np.genfromtxt(file_handler, dtype=None);  
+data = np.genfromtxt(file_handler, dtype=None,skip_footer=3);  
 
 tau = data[row, 0]
 gamma = data[row, 1]
@@ -76,14 +91,10 @@ for bias in biaswindow:
     current.append( [ np.trapz(transmission, epsilon) ])
 
 realscale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
-print realscale
 
 current = realscale * np.array(current)
 minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
-
-print "Max current %2.3e at epsilon_res %d bias_res %d" % (maximum, epsilon_res,bias_res)
-
 
 plt.figure(figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=30)
@@ -93,24 +104,29 @@ title = "Dummy title"
 xlabel = ""
 ylabel = ""
 plt.rc('font', family='serif')
- 
-plt.plot(biaswindow, current, 'g-')   
+
+print "Experiment %.3e vs. Theory %.3e" % ( current.max(), experimental_current.max())
+
+plt.plot(biaswindow, current, 'g-') 
+plt.plot(experimental_bias, experimental_current, 'r--')   
  
 
 title = "Current versus bias"
 xlabel = "Bias $V_b$"
 ylabel = "$I(V_b)$"
  
-plt.ylim([minimum, maximum])
+#plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
 
-plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
-    alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
+#plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
+#    alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
 #plt.legend()
 
 
 if plotting_mode == 2 or plotting_mode == 3:
+    print "Can't save svg"
+    sys.exit(0)
     plt.savefig('perrin_two_site.svg')
 else:    
     plt.show()
