@@ -21,6 +21,8 @@ capacitive = 0.05*3*0
 levels = -0.25
 capacitive = 0.125
 
+sys.exit(0)
+
 tunnel = np.zeros((2,2))
 tunnel[0][1] = -tau
 tunnel[1][0] = -tau
