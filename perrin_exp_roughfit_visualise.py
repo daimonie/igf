@@ -11,8 +11,8 @@ global_time_start = time.time()
 plotting_mode = 0
 
 ###
-filename = "rough_fit_accidentally_negative_u.txt"
-row = 98
+filename = "rough_fit_638.txt"
+row = 198
 
 file_handler = open( filename, "r" );
 data = np.genfromtxt(file_handler, dtype=None);  
