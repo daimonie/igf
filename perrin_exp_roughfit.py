@@ -101,7 +101,7 @@ def lsqe(x, bias_array, current_array):
 
     current_fit *= scale
     
-    scale, error = calculate_error( bias_array, current, current_array)
+    scale, error = calculate_error( bias_array, current_fit, current_array)
     
     
     return scale, error
@@ -141,6 +141,8 @@ def error_task( argument ):
     task_result.extend(param_x)
     task_result.append(scale)
     task_result.append(error) 
+    
+    #print task_result
     return task_result
                     
 def super_error_task( argument_list ):
