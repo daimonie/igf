@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1
+#PBS -l nodes=1:ppn=20
 #PBS -e /qsub_out/error.txt
 #PBS -o /qsub_out/output.txt
 #cd $PBS_O_WORKDIR
 
-i=656
-python perrin_exp_roughfit.py -s $i >> rough_fit_${i}.txt
+i=675
+python perrin_exp_roughfit.py -c 20 -s $i >> rough_fit_${i}.txt

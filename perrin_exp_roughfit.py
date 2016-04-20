@@ -2,6 +2,8 @@ import numpy as np
 import scipy.interpolate as si
 from scipy.optimize import minimize
 from scipy.constants import physical_constants as pc
+#Parallel processes!
+import multiprocessing as mp
 from igf import *
 import sys as sys
 #Command line arguments.
@@ -23,9 +25,18 @@ parser.add_argument(
     type = int,
     default = 656
 )   
+parser.add_argument(
+    '-c',
+    '--cores',
+    help='Number of cores',
+    action='store',
+    type = int,
+    default = 4
+)   
 args	= parser.parse_args() 
 
 sep = args.sep
+cores = args.cores
 ###
 epsilon_res = 1000
 beta = 250
@@ -34,7 +45,8 @@ global_time_start = time.time()
 
 def lsqe(x, bias_array, current_array):
     global beta, epsilon_res
-    
+    #return 1.0, 1337.666
+
     xtau = x[0]
     xgamma = x[1]
     xlevels = x[2]
@@ -92,7 +104,7 @@ def lsqe(x, bias_array, current_array):
     scale, error = calculate_error( bias_array, current, current_array)
     
     
-    return scale, error, current_fit
+    return scale, error
 ###
 
 exp_file = "exp_data/IV130328_7_%d.dat" %sep
@@ -106,34 +118,48 @@ points = 5
 filter = np.ones(points)/points
 current = np.convolve(current, filter, mode='same')
 
+
+param_list = []
+
 for levels in np.array([0.00, -0.10, -0.25, -0.45]):
     for tau in np.array([2.0, 6.0, 40.0])/1000.0:
-        for gamma in np.array([10.0,100.0])/1000.0:
+        for gamma in np.array([10.0, 100.0])/1000.0:
             for alpha in np.array([0.25, 0.50, 0.75, 1.00]):
                 for capacitive in np.array([0.00, 0.10, 0.25, 0.45]):
-                    x = np.array([tau, gamma, levels, alpha, capacitive])
-                    scaler, error, fit_current = lsqe(x, bias, current)
-                    print "%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3e\t%.3e\t" % (x[0], x[1], x[2], x[3], x[4], scaler, error)
-                     
-###                    
-#plt.figure(figsize=(10, 10), dpi=1080)
-#plt.xticks(fontsize=30)
-#plt.yticks(fontsize=30)
+                    x = [tau, gamma, levels, alpha, capacitive, bias, current]
+                    param_list.append(x)
+                    
+
+def error_task( argument ):
+    param_x = [ argument[0], argument[1], argument[2], argument[3], argument[4] ]
+    param_bias = argument[5]
+    param_current = argument[6]
+     
+    scale, error =  lsqe( param_x, param_bias, param_current) 
+    
+    task_result = []
+    task_result.extend(param_x)
+    task_result.append(scale)
+    task_result.append(error) 
+    return task_result
+                    
+def super_error_task( argument_list ):
+    return [ error_task(argument) for argument in argument_list]
+    
+parallel_pool = mp.Pool(processes=cores) #automatically uses all cores 
+
+delta = int(len(param_list) / (cores-1))
+
+pool_arguments = [param_list[ (delta*n):(delta*(n+1))] for n in range(cores-1)]
+
+if len(param_list) > delta*(cores-1):
+    pool_arguments.append( param_list[delta*(cores-1):len(param_list)])
  
+results = parallel_pool.map(super_error_task, pool_arguments)
 
-#plt.plot(bias, fitted_current, 'g-', )   
-#plt.plot(bias, current, 'r--')   
-
-#xlabel = "Bias voltage $V_B$"
-#ylabel = "Current $I$"
-#plt.rc('font', family='serif') 
-
-#plt.xlabel(xlabel, fontsize=30)
-#plt.ylabel(ylabel, fontsize=30)
-
-#plt.title("%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t" % (min_x[0], min_x[1], min_x[2], min_x[3], min_x[4], min_scaler, min_error))
-#plt.savefig("roughfit.png")
-
-
+for worker in results:
+    for row in worker:
+        print "%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t" % (row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+###
 global_time_end = time.time ()
-print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
+print "\nTime spent %.6f seconds. \n " % (global_time_end - global_time_start)
