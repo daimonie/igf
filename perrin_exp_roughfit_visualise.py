@@ -7,6 +7,10 @@ from experiment import *
 import sys as sys
 import argparse as argparse  
 import time
+
+#Parallel processes!
+import multiprocessing as mp
+
 global_time_start = time.time()
 
 plotting_mode = 0
@@ -82,10 +86,13 @@ tunnel[1][0] = -tau
 beta = 250.00
 
 biaswindow = experimental_bias
-    
+
+print "Using %d cores" % mp.cpu_count()
 current = []
 if calculate_current:
-    for bias in biaswindow:
+    #for bias in biaswindow:
+    def current_task(bias):
+        global levels, alpha, tunnel, interaction, gamma_left, gamma_right, beta, epsilon_res
         hamiltonian = np.zeros((2,2))
         
         hamiltonian[0][0] = levels + 0.5 * alpha * bias
@@ -104,11 +111,35 @@ if calculate_current:
         #It is unfeasible to plot all the channels. Sum them up!
         
         transmission = calculation.full_transmission(epsilon)
+        this_current = np.trapz(transmission, epsilon) 
+        realscale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+        this_current = realscale * np.array(this_current)
+        return this_current
+    #    current.append( [ np.trapz(transmission, epsilon) ])
+    def super_current_task(arg):
+        small_window = arg[0]
+        n = arg[1]
+        
+        super_time_start = time.time ()
+        
+        super_result = [current_task(bias) for bias in small_window]             
+        
+        super_time_end = time.time ()
+        print "Spent %.6f seconds on process %d. \n " % (super_time_end - super_time_start, n)
+        return super_result
+    def super_task_assemble(results):
+        final_results = np.array([])
+        for i in range(len(results)):
+            final_results = np.append(final_results, results[i])
+        
+        return np.array( final_results )
+    parallel_pool = mp.Pool(processes=4) #automatically uses all cores 
      
-        current.append( [ np.trapz(transmission, epsilon) ])
-    
-    realscale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
-    current = realscale * np.array(current)
+    results = parallel_pool.map(super_current_task, [[biaswindow[ (101*n):(101*(n+1))],n] for n in [0, 1, 2, 3]])
+    #print results
+    results = super_task_assemble(results)
+    #print results
+    current = results
 else:
     current = biaswindow*0
 ###  
@@ -118,7 +149,7 @@ print "New error is %2.3e, scale factor %.3e" % (new_error, scale)
 minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
-plt.figure(figsize=(10, 10), dpi=1080)
+plt.figure()#figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
 
@@ -147,12 +178,12 @@ plt.ylabel(ylabel, fontsize=30)
 #plt.legend()
 
 
+global_time_end = time.time ()
+print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
+
 if plotting_mode == 2 or plotting_mode == 3:
     print "Can't save svg"
     sys.exit(0)
     plt.savefig('perrin_two_site.svg')
 else:    
     plt.show()
-
-global_time_end = time.time ()
-print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
