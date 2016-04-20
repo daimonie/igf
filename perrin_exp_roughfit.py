@@ -89,12 +89,10 @@ def lsqe(x, bias_array, current_array):
 
     current_fit *= scale
     
+    scale, error = calculate_error( bias_array, current, current_array)
     
-    squares = np.square( current_array - current_fit)
     
-    sum_least_squares = squares.sum()
-    
-    return scale, sum_least_squares, current_fit
+    return scale, error, current_fit
 ###
 
 exp_file = "exp_data/IV130328_7_%d.dat" %sep

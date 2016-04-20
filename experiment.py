@@ -25,3 +25,30 @@ def read_experiment( filename ):
     exp_current -= exp_background(exp_bias)
     
     return exp_bias, exp_current 
+def calculate_error( param_bias, param_current, param_exp ):
+    error_func = 0.0
+    param_bias = np.array( param_bias )
+    param_current = np.array( param_current )
+    param_exp = np.array( param_exp )
+    
+    if param_bias.shape[0] == param_current.shape[0] and param_current.shape[0] == param_exp.shape[0]:
+        peak_current = param_current.max()
+        peak_exp = param_exp.max()
+        
+        param_current /= peak_current
+        param_exp /= peak_exp
+        
+        squares = np.square( param_exp - param_current)
+        sum_least_squares = squares.sum()
+        
+        scaler = 1.0
+        if peak_current > peak_exp:
+            scaler = peak_current / peak_exp
+        else:
+            scaler = peak_exp / peak_current
+        error_func = scaler * sum_least_squares
+        
+        return scaler, error_func
+    else:
+        raise Exception("Calculate Error: Arguments should have the same shape.")
+     

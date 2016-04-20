@@ -12,26 +12,34 @@ global_time_start = time.time()
 plotting_mode = 0
 
 ###
-sep = 648
-
+sep = 650
+row = 7
+calculate_current = True
+#calculate_current = False
 
 exp_file = "exp_data/IV130328_7_%d.dat" % sep
-
+print "Data from [%s], anti-symmetrised for a better fit." % exp_file
 experimental_bias, experimental_current = read_experiment(exp_file)
 
 #make current symmetric
 experimental_current = (experimental_current - experimental_current[::-1])/2.0
-print "Current should be anti-symmetric; tried (I(x) - I(-x))/2 to make it look nicer.
+
 points_filter = 5 
 conv_filter = np.ones(points_filter)/points_filter
 experimental_current = np.convolve(experimental_current, conv_filter, mode='same')
 
 filename = "rough_fit_%d.txt" % sep
-row = 198
 
 file_handler = open( filename, "r" );
 data = np.genfromtxt(file_handler, dtype=None,skip_footer=3);  
+if row < 0:
+    error_array = data[:, 6]
+    row = np.where( error_array <= error_array.min()*1.05)[0]
+    row = row.min()
 
+    print "Lowest error row is %d." % row
+else:
+    print "Calculate error row %d." %  row
 tau = data[row, 0]
 gamma = data[row, 1]
 levels = data[row, 2]
@@ -39,6 +47,15 @@ alpha = data[row, 3]
 capacitive = data[row, 4]
 scaler = data[row, 5]
 error = data[row, 6]
+
+print "Fitted parameters:"
+print "\t tau = %2.3f" % tau
+print "\t gamma = %2.3f" % gamma
+print "\t levels = %2.3f" % levels
+print "\t alpha = %2.3f" % alpha
+print "\t capacitive = %2.3f" % capacitive
+print "\t scaler = %2.3f" % scaler
+print "\t error = %2.3f" % error
 ### 
 # left, right are now +- eV/2, see Fig 4b in Perrin(2014)
 epsilon_res = 1000
@@ -64,35 +81,40 @@ tunnel[1][0] = -tau
 
 beta = 250.00
 
-biaswindow = np.linspace(bias_left, bias_right, bias_res)
+biaswindow = experimental_bias
     
 current = []
+if calculate_current:
+    for bias in biaswindow:
+        hamiltonian = np.zeros((2,2))
+        
+        hamiltonian[0][0] = levels + 0.5 * alpha * bias
+        hamiltonian[1][1] = levels - 0.5 * alpha * bias
+        
+        calculation = igfwl(
+            hamiltonian, 
+            tunnel,
+            interaction, 
+            gamma_left,
+            gamma_right, 
+            beta
+        )
+        epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
+        
+        #It is unfeasible to plot all the channels. Sum them up!
+        
+        transmission = calculation.full_transmission(epsilon)
+     
+        current.append( [ np.trapz(transmission, epsilon) ])
+    
+    realscale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+    current = realscale * np.array(current)
+else:
+    current = biaswindow*0
+###  
+scale, new_error = calculate_error( experimental_bias, current, experimental_current )
+print "New error is %2.3e, scale factor %.3e" % (new_error, scale)
 
-for bias in biaswindow:
-    hamiltonian = np.zeros((2,2))
-    
-    hamiltonian[0][0] = levels + 0.5 * alpha * bias
-    hamiltonian[1][1] = levels - 0.5 * alpha * bias
-    
-    calculation = igfwl(
-        hamiltonian, 
-        tunnel,
-        interaction, 
-        gamma_left,
-        gamma_right, 
-        beta
-    )
-    epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
-    
-    #It is unfeasible to plot all the channels. Sum them up!
-    
-    transmission = calculation.full_transmission(epsilon)
- 
-    current.append( [ np.trapz(transmission, epsilon) ])
-
-realscale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
-
-current = realscale * np.array(current)
 minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
@@ -107,9 +129,10 @@ plt.rc('font', family='serif')
 
 print "Experiment %.3e vs. Theory %.3e" % ( current.max(), experimental_current.max())
 
-plt.plot(biaswindow, current, 'g-') 
-plt.plot(experimental_bias, experimental_current, 'r--')   
- 
+plt.plot(biaswindow, current, 'g-', label='theoretical') 
+plt.plot(experimental_bias, experimental_current, 'r--', label='experimental')   
+plt.legend()
+
 
 title = "Current versus bias"
 xlabel = "Bias $V_b$"
