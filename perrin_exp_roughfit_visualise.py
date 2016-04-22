@@ -17,15 +17,22 @@ plotting_mode = 0
 
 ###
 sep = 650
-row = 7
+row = 157
 calculate_current = True
 #calculate_current = False
 
+editing_parameters = False
+editing_parameters = True
+
+
+
+###
 exp_file = "exp_data/IV130328_7_%d.dat" % sep
 print "Data from [%s], anti-symmetrised for a better fit." % exp_file
 experimental_bias, experimental_current = read_experiment(exp_file)
 
 #make current symmetric
+original_current = experimental_current
 experimental_current = (experimental_current - experimental_current[::-1])/2.0
 
 points_filter = 5 
@@ -64,6 +71,10 @@ print "\t error = %2.3f" % error
 # left, right are now +- eV/2, see Fig 4b in Perrin(2014)
 epsilon_res = 1000
 
+
+if editing_parameters:
+    print "Changing parameters for my convenience."
+    gamma = 0.010*5
 bias_left = -1
 bias_right = 1
 bias_res = 100
@@ -149,7 +160,7 @@ print "New error is %2.3e, scale factor %.3e" % (new_error, scale)
 minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
-plt.figure()#figsize=(10, 10), dpi=1080)
+plt.figure(figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
 
@@ -161,6 +172,7 @@ plt.rc('font', family='serif')
 print "Experiment %.3e vs. Theory %.3e" % ( current.max(), experimental_current.max())
 
 plt.plot(biaswindow, current, 'g-', label='theoretical') 
+plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
 plt.plot(experimental_bias, experimental_current, 'r--', label='experimental')   
 plt.legend()
 
@@ -186,4 +198,5 @@ if plotting_mode == 2 or plotting_mode == 3:
     sys.exit(0)
     plt.savefig('perrin_two_site.svg')
 else:    
-    plt.show()
+    #plt.show()
+    plt.savefig("fit_visualise.png")
