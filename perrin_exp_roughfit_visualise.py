@@ -17,7 +17,7 @@ plotting_mode = 0
 
 ###
 sep = 650
-row = 157
+row = 1
 calculate_current = True
 #calculate_current = False
 
@@ -74,7 +74,8 @@ epsilon_res = 1000
 
 if editing_parameters:
     print "Changing parameters for my convenience."
-    gamma = 0.010*5
+    tau *= 3.0
+    
 bias_left = -1
 bias_right = 1
 bias_res = 100
