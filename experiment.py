@@ -49,9 +49,9 @@ def calculate_error( param_bias, param_current, param_exp ):
             scaler = peak_exp / peak_current
             #print peak_current, peak_exp, scaler
             
-        error_func = scaler * sum_least_squares
+        error_func = sum_least_squares
         #print scaler, error_func, sum_least_squares
-        return scaler, error_func
+        return scaler, error_func, error_func * scaler
     else:
         raise Exception("Calculate Error: Arguments should have the same shape.")
      

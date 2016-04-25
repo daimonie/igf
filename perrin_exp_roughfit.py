@@ -46,7 +46,7 @@ global_time_start = time.time()
 def lsqe(x, bias_array, current_array):
     global beta, epsilon_res
     #return 1.0, 1337.666
-
+    
     xtau = x[0]
     xgamma = x[1]
     xlevels = x[2]
@@ -121,11 +121,11 @@ current = np.convolve(current, filter, mode='same')
 
 param_list = []
 
-for levels in np.array([0.00, -0.10, -0.25, -0.45]):
-    for tau in np.array([2.0, 6.0, 40.0])/1000.0:
-        for gamma in np.array([10.0, 100.0])/1000.0:
-            for alpha in np.array([0.25, 0.50, 0.75, 1.00]):
-                for capacitive in np.array([0.00, 0.10, 0.25, 0.45]):
+for levels in np.linspace( 0.00, -0.50, 20):
+    for tau in np.array([0.004]):
+        for gamma in np.array([0.010]):
+            for alpha in np.array([.75]):
+                for capacitive in np.array([0.10]):
                     x = [tau, gamma, levels, alpha, capacitive, bias, current]
                     param_list.append(x)
                     
@@ -135,12 +135,13 @@ def error_task( argument ):
     param_bias = argument[5]
     param_current = argument[6]
      
-    scale, error =  lsqe( param_x, param_bias, param_current) 
+    scale, error, scaleerror =  lsqe( param_x, param_bias, param_current) 
     
     task_result = []
     task_result.extend(param_x)
     task_result.append(scale)
     task_result.append(error) 
+    task_result.append(scaleerror) 
     
     #print task_result
     return task_result
