@@ -24,8 +24,6 @@ calculate_current = True
 editing_parameters = False
 editing_parameters = True
 
-
-
 ###
 exp_file = "exp_data/IV130328_7_%d.dat" % sep
 print "Data from [%s], anti-symmetrised for a better fit." % exp_file
@@ -73,9 +71,9 @@ epsilon_res = 1000
 
 
 if editing_parameters:
-    print "Changing parameters for my convenience."
-    tau *= 3.0
-    
+    print "Changing parameters for my convenience." 
+    tau *= 3.0 
+    alpha *= 1.05 
 bias_left = -1
 bias_right = 1
 bias_res = 100
@@ -98,13 +96,13 @@ tunnel[1][0] = -tau
 beta = 250.00
 
 biaswindow = experimental_bias
-
+realscale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
 print "Using %d cores" % mp.cpu_count()
 current = []
 if calculate_current:
     #for bias in biaswindow:
     def current_task(bias):
-        global levels, alpha, tunnel, interaction, gamma_left, gamma_right, beta, epsilon_res
+        global realscale, levels, alpha, tunnel, interaction, gamma_left, gamma_right, beta, epsilon_res
         hamiltonian = np.zeros((2,2))
         
         hamiltonian[0][0] = levels + 0.5 * alpha * bias
@@ -124,7 +122,6 @@ if calculate_current:
         
         transmission = calculation.full_transmission(epsilon)
         this_current = np.trapz(transmission, epsilon) 
-        realscale = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
         this_current = realscale * np.array(this_current)
         return this_current
     #    current.append( [ np.trapz(transmission, epsilon) ])
@@ -172,9 +169,29 @@ plt.rc('font', family='serif')
 
 print "Experiment %.3e vs. Theory %.3e" % ( current.max(), experimental_current.max())
 
-plt.plot(biaswindow, current, 'g-', label='theoretical') 
+delta = lambda VV: np.sqrt( (alpha * VV )**2 + (2. * tau )**2)
+epsilon_1 = lambda VV: levels - 0.5 * delta(VV)
+epsilon_2 = lambda VV: levels + 0.5 * delta(VV)
+
+
+analytic_current_0 = lambda VV: realscale * gamma * ( 2. * tau)**2 / (delta(VV)**2 + gamma**2)
+analytic_current_1 = lambda VV: np.arctan( (0.5 * VV - epsilon_1(VV))/(gamma/2.0))
+analytic_current_2 = lambda VV: np.arctan( (0.5 * VV + epsilon_1(VV))/(gamma/2.0))
+analytic_current_3 = lambda VV: np.arctan( (0.5 * VV - epsilon_2(VV))/(gamma/2.0))
+analytic_current_4 = lambda VV: np.arctan( (0.5 * VV + epsilon_2(VV))/(gamma/2.0))
+analytic_current_5 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_1(VV))**2 + (gamma/2.0)**2)/((0.5*VV+epsilon_1(VV))**2 + (gamma/2.0)**2))
+analytic_current_6 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_2(VV))**2 + (gamma/2.0)**2)/((0.5*VV+epsilon_2(VV))**2 + (gamma/2.0)**2))
+
+analytic_current = lambda VV: analytic_current_0(VV) * ( analytic_current_1(VV)+ analytic_current_2(VV)+ analytic_current_3(VV)+ analytic_current_4(VV)+ analytic_current_5(VV)+ analytic_current_6(VV))
+
+perrin_current = analytic_current( biaswindow)
+
+perrin_scale = current.max() / perrin_current.max()
+perrin_current *= perrin_scale
+plt.plot(biaswindow, perrin_current, 'm-', label='non-interacting theoretical') 
+plt.plot(biaswindow, current, 'g-', label='interaction theoretical') 
 plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
-plt.plot(experimental_bias, experimental_current, 'r--', label='experimental')   
+plt.plot(experimental_bias, experimental_current, 'r--', label='anti-symmetrised experimental')   
 plt.legend()
 
 
@@ -186,6 +203,7 @@ ylabel = "$I(V_b)$"
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
 
+plt.title("non-interacting model scaled by a factor %.3e" % perrin_scale)
 #plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
 #    alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
 #plt.legend()
