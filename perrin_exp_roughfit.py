@@ -101,10 +101,10 @@ def lsqe(x, bias_array, current_array):
 
     current_fit *= scale
     
-    scale, error = calculate_error( bias_array, current_fit, current_array)
+    scale, error,scaleerror = calculate_error( bias_array, current_fit, current_array)
     
     
-    return scale, error
+    return scale, error, scaleerror
 ###
 
 exp_file = "exp_data/IV130328_7_%d.dat" %sep
@@ -121,7 +121,7 @@ current = np.convolve(current, filter, mode='same')
 
 param_list = []
 
-for levels in np.linspace( 0.00, -0.50, 20):
+for levels in np.linspace( 0.00, -0.50, 1):
     for tau in np.array([0.004]):
         for gamma in np.array([0.010]):
             for alpha in np.array([.75]):
