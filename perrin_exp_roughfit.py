@@ -121,7 +121,7 @@ current = np.convolve(current, filter, mode='same')
 
 param_list = []
 
-for levels in np.linspace( 0.00, -0.50, 1):
+for levels in np.linspace( 0.00, -0.50, 50):
     for tau in np.array([0.004]):
         for gamma in np.array([0.010]):
             for alpha in np.array([.75]):
