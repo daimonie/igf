@@ -11,10 +11,10 @@ global_time_start = time.time()
 plotting_mode = 0
 
 alpha = 0.74
-tau = 0.0241
-gamma = 0.0102
-bias = 0.25*2
-capacitive = .15*1
+tau = 0.005
+gamma = 0.01
+bias = 0.25
+capacitive = .100*1
 
 
 #levels set to zero-
@@ -49,20 +49,19 @@ epsilon_res = 10000
 
 interaction = np.zeros((4,4))
 
-interaction[0][2] = capacitive
-interaction[1][2] = capacitive 
+interaction[0][0] = capacitive
+interaction[1][1] = capacitive
+interaction[2][2] = capacitive
+interaction[3][3] = capacitive 
 
-interaction[0][3] = capacitive
-interaction[1][3] = capacitive 
-
-
-interaction[2][0] = capacitive
-interaction[2][1] = capacitive 
-
-interaction[3][0] = capacitive
-interaction[3][1] = capacitive 
+interaction[0][1] = capacitive*2.0
+interaction[1][0] = capacitive*2.0
+interaction[2][3] = capacitive*2.0
+interaction[3][2] = capacitive*2.0
 
 
+##print interaction
+#sys.exit(0)
 gamma_left = np.zeros((4,4))
 gamma_left[0][0] = gamma
 gamma_left[1][1] = gamma
@@ -82,7 +81,8 @@ calculation = igfwl(
     gamma_right, 
     beta
 )
-
+print hamiltonian
+print interaction
 print "Chance overview:"
 p = calculation.distribution()
 for i in calculation.generate_superset(0):
@@ -167,9 +167,9 @@ plt.plot(values, height, 'ko')
 
 
 if plotting_mode == 2 or plotting_mode == 3:
-    plt.savefig('perrin_two_site.svg')
+    plt.savefig('perspin_two_site.svg')
 else:    
-    plt.show()
+    plt.savefig('perspin_two_site.png')
 
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
