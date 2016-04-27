@@ -8,7 +8,7 @@ def read_experiment_data( filename ):
     exp_bias = data[:,0]
     exp_current = data[:,1] 
     
-    truebias = np.linspace(np.min(exp_bias), np.max(exp_bias), int(exp_bias.shape[0]/2))
+    truebias = np.linspace(-0.2, 0.2, int(exp_bias.shape[0]/2))
     
     truecurrent = si.griddata(exp_bias, exp_current, truebias, method='nearest')
     file_handler.close()

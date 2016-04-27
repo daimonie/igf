@@ -121,15 +121,16 @@ current = np.convolve(current, filter, mode='same')
 
 param_list = []
 
-for levels in np.linspace( 0.00, -0.50, 1):
-    for tau in np.array([0.004]):
-        for gamma in np.array([0.010]):
-            for alpha in np.array([.75]):
-                for capacitive in np.array([0.10]):
+for levels in np.linspace( 0.00, -0.50, 20):
+    for tau in np.array([0.002, 0.004, 0.006]):
+        for gamma in np.array([0.005, 0.010, 0.015]):
+            for alpha in np.array([.50, 0.60, 0.70]):
+                for capacitive in np.array([0.05, 0.10, 0.15]):
                     x = [tau, gamma, levels, alpha, capacitive, bias, current]
                     param_list.append(x)
                     
-
+#print len(param_list)
+#sys.exit(0)
 def error_task( argument ):
     param_x = [ argument[0], argument[1], argument[2], argument[3], argument[4] ]
     param_bias = argument[5]
@@ -162,7 +163,8 @@ results = parallel_pool.map(super_error_task, pool_arguments)
 
 for worker in results:
     for row in worker:
-        print "%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t" % (row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+        #print row
+        print "%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t" % (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
 ###
 global_time_end = time.time ()
 print "\nTime spent %.6f seconds. \n " % (global_time_end - global_time_start)

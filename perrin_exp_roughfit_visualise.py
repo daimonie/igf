@@ -16,7 +16,7 @@ global_time_start = time.time()
 plotting_mode = 0
 
 ###
-sep = 650
+sep = 668
 row = 1
 calculate_current = True
 #calculate_current = False
@@ -28,7 +28,7 @@ editing_parameters = True
 exp_file = "exp_data/IV130328_7_%d.dat" % sep
 print "Data from [%s], anti-symmetrised for a better fit." % exp_file
 experimental_bias, experimental_current = read_experiment(exp_file)
-
+### 
 #make current symmetric
 original_current = experimental_current
 experimental_current = (experimental_current - experimental_current[::-1])/2.0
@@ -71,9 +71,7 @@ epsilon_res = 1000
 
 
 if editing_parameters:
-    print "Changing parameters for my convenience." 
-    tau *= 3.0 
-    alpha *= 1.05 
+    print "Changing parameters for my convenience."  
 bias_left = -1
 bias_right = 1
 bias_res = 100
@@ -152,15 +150,16 @@ if calculate_current:
 else:
     current = biaswindow*0
 ###  
-scale, new_error = calculate_error( experimental_bias, current, experimental_current )
-print "New error is %2.3e, scale factor %.3e" % (new_error, scale)
+scale, error, scaleerror = calculate_error( experimental_bias, current, experimental_current )
+print "Error is %2.3e, scale factor %.3e, scale error %.3e" % (error, scale, scaleerror)
 
 minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
-plt.figure(figsize=(10, 10), dpi=1080)
+fig = plt.figure(figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
+fig.subplots_adjust(left=0.17)
 
 title = "Dummy title"
 xlabel = ""
@@ -186,12 +185,12 @@ analytic_current = lambda VV: analytic_current_0(VV) * ( analytic_current_1(VV)+
 
 perrin_current = analytic_current( biaswindow)
 
-perrin_scale = current.max() / perrin_current.max()
+perrin_scale = experimental_current.max() / perrin_current.max()
 perrin_current *= perrin_scale
 plt.plot(biaswindow, perrin_current, 'm-', label='non-interacting theoretical') 
 plt.plot(biaswindow, current, 'g-', label='interaction theoretical') 
 plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
-plt.plot(experimental_bias, experimental_current, 'r--', label='anti-symmetrised experimental')   
+plt.plot(experimental_bias, experimental_current, 'r-', label='anti-symmetrised experimental')   
 plt.legend()
 
 
