@@ -54,7 +54,7 @@ for i in range(16):
     capacitive = data[row, 4]
     scaler = data[row, 5]
     error = data[row, 6]
-    scaleerror = data[row, 7]
+   # scaleerror = data[row, 7]
 
     tau_array.append(tau)
     gamma_array.append(gamma)
@@ -63,7 +63,7 @@ for i in range(16):
     capacitive_array.append(capacitive)
     scaler_array.append(scaler)
     error_array.append(error)
-    scaleerror_array.append(scaleerror)
+    #scaleerror_array.append(scaleerror)
 
 
 ###
@@ -73,7 +73,8 @@ plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
  
  
-title = "Scaler max %2.3e, error max %2.3e, scaleerror max %2.3e" % (np.max(scaler_array), np.max(error_array), np.max(scaleerror_array))
+#title = "Scaler max %2.3e, error max %2.3e, scaleerror max %2.3e" % (np.max(scaler_array), np.max(error_array), np.max(scaleerror_array))
+title = "Scaler max %2.3e, error max %2.3e" % (np.max(scaler_array), np.max(error_array))
 xlabel = "Separation"
 ylabel = "Value"
 plt.rc('font', family='serif')
@@ -84,11 +85,11 @@ plt.plot(separations, gamma_array, 'g-', label='$\\Gamma$')
 plt.plot(separations, levels_array, 'b-', label='$\\epsilon_0$')  
 plt.plot(separations, alpha_array, 'c-', label='$\\alpha$')  
 plt.plot(separations, capacitive_array, 'm-', label='$U$')  
-plt.plot(separations, scaler_array / np.max(scaler_array), 'k--', label='scale')  
-plt.plot(separations, error_array / np.max(error_array), 'y--', label='error')  
-plt.plot(separations, scaleerror_array / np.max(scaleerror_array), 'y-', label='error')  
+plt.plot(separations, scaler_array, 'k--', label='scale')  
+plt.plot(separations, error_array, 'y--', label='error')  
+#plt.plot(separations, scaleerror_array / np.max(scaleerror_array), 'y-', label='error')  
 
-
+plt.ylim([-1.0, 1.0])
 plt.xlabel(xlabel, fontsize=15)
 plt.ylabel(ylabel, fontsize=15)
 
