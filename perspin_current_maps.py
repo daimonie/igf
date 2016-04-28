@@ -28,6 +28,12 @@ param_right = -0.5
 param_res = 40
 
 
+#param_type = 'o'
+#param_left = 0.00
+#param_right = 5.00
+#param_res = 40
+
+
 array_param = []
 array_bias = []    
 array_current = [] 
@@ -51,9 +57,14 @@ for param in param_space:
         alpha = 0.74
         tau = 0.0241
         gamma = 0.0102
-        levels = -0.05
-        capacitive = 0.15*0
+        capacitive = 0.100
         beta = 250.00
+        levels = -0.05
+        
+        onsite = 2.0
+        levels = - 0.100
+        
+        #levels = -capacitive
         
         if param_type == 'e':
             levels = param
@@ -67,6 +78,8 @@ for param in param_space:
             tau = param
         elif param_type == 'g':
             gamma = param
+        elif param_type == 'o':
+            onsite = param
                 
         
         hamiltonian = np.zeros((4,4))
@@ -91,15 +104,27 @@ for param in param_space:
 
         interaction = np.zeros((4,4))
 
-        interaction[0][0] = capacitive
-        interaction[1][1] = capacitive
-        interaction[2][2] = capacitive
-        interaction[3][3] = capacitive 
 
-        interaction[0][1] = capacitive*2.0
-        interaction[1][0] = capacitive*2.0
-        interaction[2][3] = capacitive*2.0
-        interaction[3][2] = capacitive*2.0 
+        interaction[0][1] = onsite * capacitive
+        interaction[1][0] = onsite * capacitive
+
+        interaction[2][3] = onsite * capacitive
+        interaction[3][2] = onsite * capacitive
+
+        interaction[0][3] = capacitive
+        interaction[3][0] = capacitive
+
+        interaction[0][2] = capacitive
+        interaction[2][0] = capacitive
+
+        interaction[1][3] = capacitive
+        interaction[3][1] = capacitive
+
+        interaction[1][2] = capacitive
+        interaction[2][1] = capacitive
+
+
+
         gamma_left = np.zeros((4,4))
         gamma_left[0][0] = gamma
         gamma_left[1][1] = gamma
@@ -181,7 +206,9 @@ elif param_type == 't':
     ax.set_ylabel( "Tunnel coupling $\\tau$",fontsize=30);
 elif param_type == 'g':
     ax.set_ylabel( "Lead-coupling strength$\\Gamma$",fontsize=30);
-ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive), fontsize=25, y=1.07) 
+elif param_type == 'o':
+    ax.set_ylabel( "On-site interaction strength",fontsize=30);
+ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$,$O=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive, onsite), fontsize=25, y=1.07) 
 
 
 ###

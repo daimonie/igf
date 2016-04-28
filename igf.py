@@ -74,15 +74,13 @@ class igfwl(object):
             
             if norm_squared > 0: #zero is appended at the end
                 energy          = np.dot(state.T, np.dot( self.epsilon, state))
-                interaction     = np.dot(state.T, np.dot( self.u, state))
-                
+                interaction     = np.sum(np.dot( self.u, state))
+                #print interaction
                 energy_vector.append( energy + interaction )
                 
-        energy_vector.insert(0, 0.0)
-        
-        probability = np.exp( np.multiply(-self.beta, energy_vector))
-        
-        probability /= probability.sum()
+        energy_vector.insert(0, 0.0) 
+        probability = np.exp( np.multiply(-self.beta, energy_vector)) 
+        probability /= probability.sum() 
         return probability
     
     def transport_channel_ij(self, i, j, chances, epsilon):

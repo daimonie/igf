@@ -13,19 +13,20 @@ plotting_mode = 0
 alpha = 0.74
 tau = 0.005
 gamma = 0.01
-bias = 0.25
+bias = 0.25*1
 capacitive = .100*1
+ksi = 2.0
 
 
 #levels set to zero-
-#levels = -0.05
-levels=-capacitive
+levels = -0.05
+levels= -capacitive
 
 hamiltonian = np.zeros((4,4))
 
 hamiltonian[0][0] = levels + 0.5 * alpha * bias
-hamiltonian[2][2] = levels - 0.5 * alpha * bias
 hamiltonian[1][1] = levels + 0.5 * alpha * bias
+hamiltonian[2][2] = levels - 0.5 * alpha * bias
 hamiltonian[3][3] = levels - 0.5 * alpha * bias
 
 tunnel = np.zeros((4,4))
@@ -40,8 +41,7 @@ tunnel[2][1] = tau
 
 tunnel[3][0] = tau 
 tunnel[3][1] = tau 
-
-
+ 
 #change these numbers based on visual inspection
 epsilon_left = -.6
 epsilon_right = .4
@@ -49,15 +49,23 @@ epsilon_res = 10000
 
 interaction = np.zeros((4,4))
 
-interaction[0][0] = capacitive
-interaction[1][1] = capacitive
-interaction[2][2] = capacitive
-interaction[3][3] = capacitive 
+interaction[0][1] = ksi * capacitive
+interaction[1][0] = ksi * capacitive
 
-interaction[0][1] = capacitive*2.0
-interaction[1][0] = capacitive*2.0
-interaction[2][3] = capacitive*2.0
-interaction[3][2] = capacitive*2.0
+interaction[2][3] = ksi * capacitive
+interaction[3][2] = ksi * capacitive
+
+interaction[0][3] = capacitive
+interaction[3][0] = capacitive
+
+interaction[0][2] = capacitive
+interaction[2][0] = capacitive
+
+interaction[1][3] = capacitive
+interaction[3][1] = capacitive
+
+interaction[1][2] = capacitive
+interaction[2][1] = capacitive
 
 
 ##print interaction
@@ -93,9 +101,10 @@ for i in calculation.generate_superset(0):
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 
 
-plt.figure(figsize=(10, 10), dpi=1080)
+fig = plt.figure(figsize=(10, 10), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
+fig.subplots_adjust(left=0.17)
 
 title = "Dummy title"
 xlabel = ""
@@ -115,7 +124,7 @@ if plotting_mode == 0 or plotting_mode == 2:
     print "Total\t%2.3f\t%2.3f" % (np.min(transmission), np.max(transmission))
     print "Scaler:\t%2.3f" % scaler
      
-    maximum = 1.2 * np.max(transmission)
+    maximum = 1.2 * np.max(transmission*scaler)
     title = "Transmission"
     xlabel = "Energy $\\epsilon$"
     ylabel = "Transmission"
@@ -143,6 +152,9 @@ elif plotting_mode == 1 or plotting_mode == 3:
     xlabel = "Energy $\\epsilon$"
     ylabel = "Spectral"
 
+if maximum < minimum:
+    maximum = 1.0
+    
 plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
@@ -159,9 +171,9 @@ print "eigs:", values
 
 height = values*0
 if plotting_mode == 0 or plotting_mode == 2:
-    height += np.average(transmission)
+    height += 0.2 * maximum
 elif plotting_mode == 1 or plotting_mode == 3:
-    height += np.average(spectral)
+    height += 0.2 * maximum
 
 plt.plot(values, height, 'ko') 
 
