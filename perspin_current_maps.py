@@ -92,34 +92,38 @@ for param in param_space:
         tunnel = np.zeros((4,4))
         tunnel[0][2] = tau 
         tunnel[0][3] = tau 
-
+        
         tunnel[1][2] = tau 
         tunnel[1][3] = tau 
-
+        
         tunnel[2][0] = tau 
         tunnel[2][1] = tau
-
+        
         tunnel[3][0] = tau 
-        tunnel[3][1] = tau  
-
+        tunnel[3][1] = tau 
+         
+        #change these numbers based on visual inspection
+        epsilon_left = -.6
+        epsilon_right = .4
+        epsilon_res = 10000
+        
         interaction = np.zeros((4,4))
-
-
+        
         interaction[0][1] = onsite * capacitive
         interaction[1][0] = onsite * capacitive
-
+        
         interaction[2][3] = onsite * capacitive
         interaction[3][2] = onsite * capacitive
-
+        
         interaction[0][3] = capacitive
         interaction[3][0] = capacitive
-
+        
         interaction[0][2] = capacitive
         interaction[2][0] = capacitive
-
+        
         interaction[1][3] = capacitive
         interaction[3][1] = capacitive
-
+        
         interaction[1][2] = capacitive
         interaction[2][1] = capacitive
 
