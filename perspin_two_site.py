@@ -41,6 +41,12 @@ tunnel[2][1] = tau
 tunnel[3][0] = tau 
 tunnel[3][1] = tau 
 
+### inter-spin tunnel
+tunnel[1][0] = tau 
+tunnel[0][1] = tau 
+tunnel[3][2] = tau 
+tunnel[2][3] = tau 
+
 
 #change these numbers based on visual inspection
 epsilon_left = -.6
@@ -85,10 +91,21 @@ calculation = igfwl(
 
 print "Chance overview:"
 p = calculation.distribution()
+
+
+imax = 0
+xmax = np.array([0., 0., 0., 0.])
+pmax = 0.00
 for i in calculation.generate_superset(0):
     x = calculation.ket(i)
     print "%d\t%.3e\t%d\t%d\t%d\t%d" % (i, p[i], x[0], x[1], x[2], x[3])
-
+    
+    if p[i] > pmax:
+        pmax = p[i]
+        xmax = x
+        imax = i
+    #
+#
 
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 
@@ -173,3 +190,8 @@ else:
 
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
+
+print "Effective Hamiltonian of most likely state:"
+
+mu = calculation.effective_hamiltonian(imax)
+print mu + tunnel

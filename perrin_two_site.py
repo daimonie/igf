@@ -101,23 +101,9 @@ if plotting_mode == 0 or plotting_mode == 2:
     #plt.semilogy(epsilon, transmission * scaler, 'g-',label="Many-body %s" % title)   
     #plt.plot(epsilon, transmission , 'r--',label="scaled(Many-body %s)" % title)   
     plt.plot(epsilon, transmission * scaler, 'g-', linewidth=5, label="Interacting transmission")   
-    
-    if capacitive > 0.00:
-        non_interacting_calculation = igfwl(
-            hamiltonian, 
-            tunnel,
-            interaction*0, 
-            gamma_left,
-            gamma_right, 
-            beta
-        )
-        
-        non_interacting_transmission = non_interacting_calculation.full_transmission(epsilon)  
-        plt.plot(epsilon, non_interacting_transmission, 'r-', linewidth=5 ,label="Non-Interacting")   
-        plt.legend()
-        
-        minimum = 0.00
-        maximum = non_interacting_transmission.max()
+     
+    minimum = 0.00
+    maximum = transmission.max()
         
     
 elif plotting_mode == 1 or plotting_mode == 3:

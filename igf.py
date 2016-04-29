@@ -29,13 +29,17 @@ class igfwl(object):
             self.beta = param_beta
     
             self.cutoff_chance = 0.0001
-            
+    def effective_hamiltonian(self, background):
+        mu = np.array([self.epsilon[i][i] + np.dot( self.u[i], background) for i in range(0,self.dim)])
+        mu = np.diag(mu)
+        return mu
     def singleparticlebackground(self, background):
         """This gives us the single-particle Green's function with some background."""
-        
-        mu_background = np.diag([self.epsilon[i][i] + np.dot( self.u[i], background) for i in range(0,self.dim)])
+        mu_background = self.effective_hamiltonian(background)
+        #mu_background = np.diag([self.epsilon[i][i] + np.dot( self.u[i], background) for i in range(0,self.dim)])
         single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)
         single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)
+        
         
         return single_retarded, single_advanced
     def generate_superset(self, number):
@@ -119,7 +123,7 @@ class igfwl(object):
         scale = self.scaler()
         #print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale
         transport /= scale
-        return transport
+        return np.abs(transport)
     def spectral_channel(self, k, epsilon):
         """Returns the spectral function for the many body state k."""
         raise Exception("Needs to be redone")
