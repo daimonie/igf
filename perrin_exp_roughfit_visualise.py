@@ -16,8 +16,8 @@ global_time_start = time.time()
 plotting_mode = 0
 
 ###
-sep = 668
-row = 1
+sep = 650
+row = -60
 calculate_current = True
 #calculate_current = False
 
@@ -42,7 +42,7 @@ filename = "rough_fit_%d.txt" % sep
 file_handler = open( filename, "r" );
 data = np.genfromtxt(file_handler, dtype=None,skip_footer=3);  
 if row < 0:
-    error_array = data[:, 6]
+    error_array = data[:, 7]
     row = np.where( error_array <= error_array.min()*1.05)[0]
     row = row.min()
 
@@ -71,7 +71,12 @@ epsilon_res = 1000
 
 
 if editing_parameters:
-    print "Changing parameters for my convenience."  
+    print "Changing parameters for my convenience."
+    tau = 0.024
+    alpha = 0.6##last to change
+    capacitive = 0.200
+    levels = -capacitive
+    
 bias_left = -1
 bias_right = 1
 bias_res = 100
@@ -184,9 +189,14 @@ analytic_current_6 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_2
 analytic_current = lambda VV: analytic_current_0(VV) * ( analytic_current_1(VV)+ analytic_current_2(VV)+ analytic_current_3(VV)+ analytic_current_4(VV)+ analytic_current_5(VV)+ analytic_current_6(VV))
 
 perrin_current = analytic_current( biaswindow)
-
 perrin_scale = experimental_current.max() / perrin_current.max()
 perrin_current *= perrin_scale
+
+new_scale = experimental_current.max() / current.max()
+
+current *= new_scale
+
+
 plt.plot(biaswindow, perrin_current, 'm-', label='non-interacting theoretical') 
 plt.plot(biaswindow, current, 'g-', label='interaction theoretical') 
 plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
@@ -202,7 +212,7 @@ ylabel = "$I(V_b)$"
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
 
-plt.title("non-interacting model scaled by a factor %.3e" % perrin_scale)
+plt.title("ni-model scale %.3e, i-model scale %.3e" % (perrin_scale, new_scale))
 #plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
 #    alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
 #plt.legend()
