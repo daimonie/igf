@@ -37,7 +37,7 @@ points_filter = 5
 conv_filter = np.ones(points_filter)/points_filter
 experimental_current = np.convolve(experimental_current, conv_filter, mode='same')
 
-filename = "rough_fit_%d.txt" % sep
+filename = "fit/rough_fit_%d.txt" % sep
 
 file_handler = open( filename, "r" );
 data = np.genfromtxt(file_handler, dtype=None,skip_footer=3);  
@@ -70,12 +70,16 @@ print "\t error = %2.3f" % error
 epsilon_res = 1000
 
 
+levels_ni = 0.00
 if editing_parameters:
     print "Changing parameters for my convenience."
-    tau = 0.024
-    alpha = 0.6##last to change
-    capacitive = 0.200
-    levels = -capacitive
+    gamma = 0.005*2.0
+    tau = 0.005*1.0
+    alpha = 0.9
+    capacitive = 0.100*4.0
+    levels = -capacitive 
+    
+    levels_ni = 0.00
     
 bias_left = -1
 bias_right = 1
@@ -153,7 +157,7 @@ if calculate_current:
     #print results
     current = results
 else:
-    current = biaswindow*0
+    current = np.array(experimental_bias/experimental_bias * 1e-10)
 ###  
 scale, error, scaleerror = calculate_error( experimental_bias, current, experimental_current )
 print "Error is %2.3e, scale factor %.3e, scale error %.3e" % (error, scale, scaleerror)
@@ -162,6 +166,7 @@ minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
 fig = plt.figure(figsize=(10, 10), dpi=1080)
+ax = fig.add_subplot(111)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
 fig.subplots_adjust(left=0.17)
@@ -174,8 +179,8 @@ plt.rc('font', family='serif')
 print "Experiment %.3e vs. Theory %.3e" % ( current.max(), experimental_current.max())
 
 delta = lambda VV: np.sqrt( (alpha * VV )**2 + (2. * tau )**2)
-epsilon_1 = lambda VV: levels - 0.5 * delta(VV)
-epsilon_2 = lambda VV: levels + 0.5 * delta(VV)
+epsilon_1 = lambda VV: levels_ni - 0.5 * delta(VV)
+epsilon_2 = lambda VV: levels_ni + 0.5 * delta(VV)
 
 
 analytic_current_0 = lambda VV: realscale * gamma * ( 2. * tau)**2 / (delta(VV)**2 + gamma**2)
@@ -189,6 +194,12 @@ analytic_current_6 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_2
 analytic_current = lambda VV: analytic_current_0(VV) * ( analytic_current_1(VV)+ analytic_current_2(VV)+ analytic_current_3(VV)+ analytic_current_4(VV)+ analytic_current_5(VV)+ analytic_current_6(VV))
 
 perrin_current = analytic_current( biaswindow)
+
+print "Analytic max %.3e" % perrin_current.max()
+print "Theoretical max %.3e" % current.max()
+print "Experimental max %.3e" % experimental_current.max()
+
+
 perrin_scale = experimental_current.max() / perrin_current.max()
 perrin_current *= perrin_scale
 
@@ -201,7 +212,17 @@ plt.plot(biaswindow, perrin_current, 'm-', label='non-interacting theoretical')
 plt.plot(biaswindow, current, 'g-', label='interaction theoretical') 
 plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
 plt.plot(experimental_bias, experimental_current, 'r-', label='anti-symmetrised experimental')   
-plt.legend()
+#plt.legend()
+
+ax.text( 0.10, 0.40 * current.min(), "$\\tau=%.3f$" % tau , fontsize=30 )
+ax.text( 0.10, 0.52 * current.min(), "$\\gamma=%.3f$" % gamma , fontsize=30 )
+ax.text( 0.10, 0.64 * current.min(), "$\\alpha=%.3f$" % alpha , fontsize=30 )
+ax.text( 0.10, 0.76 * current.min(), "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
+ax.text( 0.10, 0.88 * current.min(), "$U=%.3f$" % capacitive , fontsize=30 )
+
+
+plt.legend(bbox_to_anchor=(0., 1.04, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
 
 
 title = "Current versus bias"

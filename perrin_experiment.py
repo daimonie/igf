@@ -1,9 +1,11 @@
+import sys as sys
+print "WARNING: CRASHES HOME COMPUTER. USE WITH CARE."
+sys.exit(0)
 import numpy as np
 import scipy.interpolate as si
 from scipy.optimize import minimize
 from scipy.constants import physical_constants as pc
 from igf import *
-import sys as sys
 #Command line arguments.
 import argparse as argparse  
 import time
