@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
+from matplotlib import cm
+from matplotlib.ticker import FormatStrFormatter
 from scipy.constants import physical_constants as pc
 from igf import *
 from experiment import *
@@ -73,12 +76,15 @@ epsilon_res = 1000
 levels_ni = 0.00
 if editing_parameters:
     print "Changing parameters for my convenience."
-    gamma = 0.005*2.0
-    tau = 0.005*1.0
-    alpha = 0.9
-    capacitive = 0.100*4.0
-    levels = -capacitive 
-    
+     
+    gamma = 0.010
+    tau = 0.020
+    alpha = 0.300
+    capacitive = 0.117
+    levels = -0.122
+     
+    alpha = 0.25
+     
     levels_ni = 0.00
     
 bias_left = -1
@@ -165,11 +171,11 @@ print "Error is %2.3e, scale factor %.3e, scale error %.3e" % (error, scale, sca
 minimum = 1.2 * np.min(current)
 maximum = 1.2 * np.max(current)
 
-fig = plt.figure(figsize=(10, 10), dpi=1080)
+fig = plt.figure(figsize=(12, 10), dpi=1080)
 ax = fig.add_subplot(111)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
-fig.subplots_adjust(left=0.17)
+fig.subplots_adjust(left=0.30)
 
 title = "Dummy title"
 xlabel = ""
@@ -210,15 +216,15 @@ current *= new_scale
 
 plt.plot(biaswindow, perrin_current, 'm-', label='non-interacting theoretical') 
 plt.plot(biaswindow, current, 'g-', label='interaction theoretical') 
-plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
-plt.plot(experimental_bias, experimental_current, 'r-', label='anti-symmetrised experimental')   
+#plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
+plt.plot(experimental_bias, experimental_current, 'r--', label='anti-symmetrised experimental')   
 #plt.legend()
 
-ax.text( 0.10, 0.40 * current.min(), "$\\tau=%.3f$" % tau , fontsize=30 )
-ax.text( 0.10, 0.52 * current.min(), "$\\gamma=%.3f$" % gamma , fontsize=30 )
-ax.text( 0.10, 0.64 * current.min(), "$\\alpha=%.3f$" % alpha , fontsize=30 )
-ax.text( 0.10, 0.76 * current.min(), "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
-ax.text( 0.10, 0.88 * current.min(), "$U=%.3f$" % capacitive , fontsize=30 )
+ax.text( 0.05, 0.40 * experimental_current.min(), "$\\tau=%.3f$" % tau , fontsize=30 )
+ax.text( 0.05, 0.52 * experimental_current.min(), "$\\gamma=%.3f$" % gamma , fontsize=30 )
+ax.text( 0.05, 0.64 * experimental_current.min(), "$\\alpha=%.3f$" % alpha , fontsize=30 )
+ax.text( 0.05, 0.76 * experimental_current.min(), "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
+ax.text( 0.05, 0.88 * experimental_current.min(), "$U=%.3f$" % capacitive , fontsize=30 )
 
 
 plt.legend(bbox_to_anchor=(0., 1.04, 1., .102), loc=3,
@@ -232,8 +238,23 @@ ylabel = "$I(V_b)$"
 #plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
+ 
+plt.xticks(np.array([-0.25, 0.00, 0.25])) 
+plt.yticks(np.linspace( experimental_current.min(), experimental_current.max(), 5))
 
-plt.title("ni-model scale %.3e, i-model scale %.3e" % (perrin_scale, new_scale))
+minorLocator1 = AutoMinorLocator(5)
+minorLocator2 = AutoMinorLocator(5)
+ax.xaxis.set_minor_locator(minorLocator1) 
+ax.yaxis.set_minor_locator(minorLocator2) 
+
+ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+ax.yaxis.set_major_formatter(FormatStrFormatter('%.2e'))
+
+plt.tick_params(which='both', width=2)
+plt.tick_params(which='major', length=20)
+plt.tick_params(which='minor', length=10)
+
+plt.title("ni-model %.3e, i-model %.3e" % (1./perrin_scale, 1./new_scale))
 #plt.title( "Pts [%s], $\\alpha=%.3f$, $\\tau=%.3f$, $\\Gamma=%.3f$, $\\epsilon_0=%.3f$, $V=%.3f$, $\\beta=%.3f$, $U=%.3f$" % (title,
 #    alpha, tau, gamma, levels, bias, beta, capacitive), fontsize=15)     
 #plt.legend()
