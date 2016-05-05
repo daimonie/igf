@@ -36,7 +36,7 @@ array_epsilon = []
 array_perspin = []
 array_perrin = []
 
-params = np.linspace( -1.0, 1.0, 200)
+params = np.linspace( -1.0, 1.0, 40)
 
 for levels in params:
     print >> sys.stderr, "Starting %.3f ." % levels
@@ -199,6 +199,8 @@ mesh_perspin = griddata(
     mesh_param,
     interp='linear')
 ###
+# output, not plot, because errors.
+
 
 cmap = plt.get_cmap('afmhot') 
 
