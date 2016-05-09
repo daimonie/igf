@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -49,16 +50,16 @@ for levels in params:
 
     perspin_tunnel = np.zeros((4,4))
     perspin_tunnel[0][2] = tau 
-    perspin_tunnel[0][3] = tau 
+    #perspin_tunnel[0][3] = tau 
 
-    perspin_tunnel[1][2] = tau 
+    #perspin_tunnel[1][2] = tau 
     perspin_tunnel[1][3] = tau 
 
     perspin_tunnel[2][0] = tau 
-    perspin_tunnel[2][1] = tau
+    #perspin_tunnel[2][1] = tau
 
     perspin_tunnel[3][0] = tau 
-    perspin_tunnel[3][1] = tau 
+    #perspin_tunnel[3][1] = tau 
 
     perspin_interaction = np.zeros((4,4))
 
