@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -29,7 +29,7 @@ tau = 0.02
 gamma = 0.01
 bias = 0.0
 capacitive = .117
-ksi = 2.0
+ksi = 2.0*10
 beta = 250.0
 
 array_levels = []
@@ -49,17 +49,14 @@ for levels in params:
     perspin_hamiltonian[3][3] = levels - 0.5 * alpha * bias
 
     perspin_tunnel = np.zeros((4,4))
-    perspin_tunnel[0][2] = tau 
-    #perspin_tunnel[0][3] = tau 
-
-    #perspin_tunnel[1][2] = tau 
-    perspin_tunnel[1][3] = tau 
-
-    perspin_tunnel[2][0] = tau 
-    #perspin_tunnel[2][1] = tau
-
-    perspin_tunnel[3][0] = tau 
-    #perspin_tunnel[3][1] = tau 
+    
+    #left-right 
+    perspin_tunnel[0][2] = tau  
+    perspin_tunnel[1][3] = tau  
+    
+    #right-left
+    perspin_tunnel[2][0] = tau  
+    perspin_tunnel[3][1] = tau  
 
     perspin_interaction = np.zeros((4,4))
 
@@ -205,7 +202,7 @@ mesh_perspin = griddata(
 
 cmap = plt.get_cmap('afmhot') 
 
-color_levels = MaxNLocator(nbins=20).tick_values(0, 1) 
+color_levels = MaxNLocator(nbins=20).tick_values(0, np.max([ mesh_perrin.max(), mesh_perspin.max()])) 
 cf = ax1.contourf(mesh_epsilon, mesh_param, mesh_perrin, cmap=cmap, levels=color_levels)
 cf = ax2.contourf(mesh_epsilon, mesh_param, mesh_perspin, cmap=cmap, levels=color_levels)
 
@@ -231,8 +228,8 @@ ax1.set_ylabel( "Zero-bias Level $\\epsilon_0$" ,fontsize=30);
 ax2.set_xlabel( "Energy $\\epsilon$",fontsize=30);
 ax2.set_ylabel( "Zero-level $\\epsilon_0$" ,fontsize=30);
 
-ax1.set_title( "Spinless two-site" , fontsize=25) 
-ax2.set_title( "Spin two-site" , fontsize=25) 
+ax1.set_title( "Spinless two-site $U=%.3f$, $\\xi=%.3f$" % (capacitive, ksi) , fontsize=25) 
+ax2.set_title( "Spin two-site $U=%.3f$, $\\xi=%.3f$" % (capacitive, ksi) , fontsize=25) 
  
 
 ###
