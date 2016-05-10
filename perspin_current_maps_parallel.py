@@ -1,5 +1,7 @@
 import numpy as np
+from paralleltask import *
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -16,11 +18,45 @@ import time
 global_time_start = time.time() 
 ###
 
+
+parser  = argparse.ArgumentParser(prog="current map parallel",
+  description = "Parallel computation of current (shape) versus some parameter.")  
+ 
+parser.add_argument(
+    '-c',
+    '--cores',
+    help='Number of cores',
+    action='store',
+    type = int,
+    default = 4
+)   
+parser.add_argument(
+    '-p',
+    '--param',
+    help='Parameter',
+    action='store',
+    type = str,
+    default = 'e'
+)   
+parser.add_argument(
+    '-k',
+    '--ksi',
+    help='Onsite interaction',
+    action='store',
+    type = float,
+    default = 2.0
+)   
+args    = parser.parse_args() 
+ 
+cores = args.cores
+param_type = args.param
+ksi = args.ksi
+
+###
 bias_left = -1
 bias_right = 1
 bias_res = 100
-
-epsilon_res = 250
+ 
 
 param_type = 'e'
 param_left = -1e-6
@@ -33,11 +69,6 @@ param_res = 40
 #param_right = 5.00
 #param_res = 40
 
-
-array_param = []
-array_bias = []    
-array_current = [] 
-
 tick_num = 100
 tick_max = 'auto'
 tick_min = 'auto'
@@ -45,44 +76,21 @@ tick_min = 'auto'
 
 cmap = plt.get_cmap('afmhot') 
 ###
-biaswindow = np.linspace(bias_left, bias_right, bias_res) 
-param_space = np.linspace(param_left,param_right,param_res)
 
-for param in param_space:
-    print "Param[%s]:\t%.3f" % (param_type, param)
+def calculate_current(arguments): 
+    epsilon_res = 250
+    biaswindow  = arguments[0]
+    alpha       = arguments[1]
+    tau         = arguments[2]
+    gamma       = arguments[3]
+    capacitive  = arguments[4]
+    beta        = arguments[5]
+    levels      = arguments[6]
+    ksi         = arguments[7]
     
-    bias_array_current = [] 
+    array_bias = []     
+    bias_array_current = []
     for bias in biaswindow:
-
-        alpha = 0.74
-        tau = 0.0241
-        gamma = 0.0102
-        capacitive = 0.100
-        beta = 250.00
-        levels = -0.05
-        
-        onsite = 2.0
-        levels = - 0.100
-        
-        #levels = -capacitive
-        
-        if param_type == 'e':
-            levels = param
-        elif param_type == 'U':
-            capacitive = param
-        elif param_type == 'a':
-            alpha = param
-        elif param_type == 'b':
-            beta = param
-        elif param_type == 't':
-            tau = param
-        elif param_type == 'g':
-            gamma = param
-        elif param_type == 'o':
-            onsite = param
-                
-        ksi = onsite
-                
         hamiltonian = np.zeros((4,4))
 
         hamiltonian[0][0] = levels + 0.5 * alpha * bias
@@ -136,31 +144,93 @@ for param in param_space:
         beta = 250.0*1
         
         calculation = igfwl(
-        hamiltonian, 
-        tunnel,
-        interaction, 
-        gamma_left,
-        gamma_right, 
-        beta
+            hamiltonian, 
+            tunnel,
+            interaction, 
+            gamma_left,
+            gamma_right, 
+            beta
         )
         epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
 
         #It is unfeasible to plot all the channels. Sum them up!
 
-        transmission = calculation.full_transmission(epsilon)
-        
+        transmission = calculation.full_transmission(epsilon) 
         current = np.trapz(transmission, epsilon)
+        #current = np.exp(levels*bias)
         
-        array_bias.append(bias)
-        array_param.append(param)
+        
+        array_bias.append(bias) 
         bias_array_current.append(current)
-        ###
-        
+        ### 
     bias_array_current = np.array(bias_array_current) / np.max(bias_array_current)
-    
-    array_current.extend(bias_array_current)
-         
+    return [array_bias, bias_array_current]
+###
+biaswindow = np.linspace(bias_left, bias_right, bias_res) 
+param_space = np.linspace(param_left,param_right,param_res)
 
+manager = taskManager( cores, calculate_current ) 
+
+for param in param_space: 
+    beta = 250.00  
+    gamma = 0.010
+    tau = 0.020
+    alpha = 0.300
+    capacitive = 0.117 
+    alpha = 0.25
+     
+    levels = - 0.100 
+    if param_type == 'e':
+        levels = param
+    elif param_type == 'U':
+        capacitive = param
+    elif param_type == 'a':
+        alpha = param
+    elif param_type == 'b':
+        beta = param
+    elif param_type == 't':
+        tau = param
+    elif param_type == 'g':
+        gamma = param
+    elif param_type == 'o':
+        onsite = param 
+    
+    manager.add_params([biaswindow, alpha, tau, gamma, capacitive, beta, levels, ksi]) 
+manager.execute()
+results = manager.final()
+
+i = 0
+array_bias = []
+array_param = []
+array_current = []
+
+for result in results:
+    biaswindow = result[0]
+    current = result[1]
+    param_set = manager.get( i )
+    
+    param = param_set[6]
+    if param_type == 'e':
+        param = param_set[6]
+    elif param_type == 'U':
+        param = param_set[4]
+    elif param_type == 'a':
+        param = param_set[1]
+    elif param_type == 'b':
+        param = param_set[5]
+    elif param_type == 't':
+        param = param_set[2]
+    elif param_type == 'g':
+        param = param_set[3]
+    elif param_type == 'o':
+        param = param_set[7]
+        
+    array_bias.extend(biaswindow)
+    array_param.extend(current*0 + param)
+    array_current.extend(current)
+    
+    i += 1
+ 
 [mesh_bias, mesh_param] = np.meshgrid(
     biaswindow,
     param_space
@@ -208,7 +278,7 @@ elif param_type == 'g':
     ax.set_ylabel( "Lead-coupling strength$\\Gamma$",fontsize=30);
 elif param_type == 'o':
     ax.set_ylabel( "On-site interaction strength",fontsize=30);
-ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$,$O=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive, onsite), fontsize=25, y=1.07) 
+ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$,$\\xi=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive, ksi), fontsize=25, y=1.07) 
 
 
 ###
@@ -216,4 +286,4 @@ global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 ###
 
-plt.savefig('perspin_current_map.png') 
+plt.savefig('perspin_current_map_parallel_ksi%.3f.png') 

@@ -30,17 +30,12 @@ hamiltonian[2][2] = levels - 0.5 * alpha * bias
 hamiltonian[3][3] = levels - 0.5 * alpha * bias
 
 tunnel = np.zeros((4,4))
-tunnel[0][2] = tau 
-tunnel[0][3] = tau 
+tunnel[0][2] = tau  
+tunnel[1][3] = tau  
 
-tunnel[1][2] = tau 
-tunnel[1][3] = tau 
-
-tunnel[2][0] = tau 
-tunnel[2][1] = tau
-
-tunnel[3][0] = tau 
-tunnel[3][1] = tau 
+#right-left
+tunnel[2][0] = tau  
+tunnel[3][1] = tau  
  
 #change these numbers based on visual inspection
 epsilon_left = -.6
@@ -66,7 +61,6 @@ interaction[3][1] = capacitive
 
 interaction[1][2] = capacitive
 interaction[2][1] = capacitive
-
 
 ##print interaction
 #sys.exit(0)
