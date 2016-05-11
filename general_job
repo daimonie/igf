@@ -1,24 +1,27 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=40
+#PBS -l nodes=1:ppn=20
 #PBS -e /qsub_out/error.txt
 #PBS -o /qsub_out/output.txt
 cd $PBS_O_WORKDIR
 
-python perspin_current_maps_parallel.py -z 0.00 -k 0.0 -c 40 
-python perspin_current_maps_parallel.py -z 0.00  -k 1.0 -c 40 
-python perspin_current_maps_parallel.py -z 0.00  -k 2.0 -c 40  
-python perspin_current_maps_parallel.py -z 0.00  -k 10.0 -c 40   
-python perspin_current_maps_parallel.py -z 0.00  -k 100000.0 -c 40 
+python perspin_current_maps_parallel.py -z 0.00 -k 0.0 -c 20 
+python perspin_current_maps_parallel.py -z 0.00  -k 1.0 -c 20 
+python perspin_current_maps_parallel.py -z 0.00  -k 2.0 -c 20  
+python perspin_current_maps_parallel.py -z 0.00  -k 10.0 -c 20   
+python perspin_current_maps_parallel.py -z 0.00  -k 100000.0 -c 20 
 
 
-python perspin_current_maps_parallel.py -z 1.00 -k 0.0 -c 40 
-python perspin_current_maps_parallel.py -z 1.00  -k 1.0 -c 40 
-python perspin_current_maps_parallel.py -z 1.00  -k 2.0 -c 40  
-python perspin_current_maps_parallel.py -z 1.00  -k 10.0 -c 40   
-python perspin_current_maps_parallel.py -z 1.00  -k 100000.0 -c 40 
+python perspin_current_maps_parallel.py -z 1.00 -k 0.0 -c 20 
+python perspin_current_maps_parallel.py -z 1.00  -k 1.0 -c 20 
+python perspin_current_maps_parallel.py -z 1.00  -k 2.0 -c 20  
+python perspin_current_maps_parallel.py -z 1.00  -k 10.0 -c 20   
+python perspin_current_maps_parallel.py -z 1.00  -k 100000.0 -c 20 
 
-python perspin_current_maps_parallel.py -z 10.00 -k 0.0 -c 40 
-python perspin_current_maps_parallel.py -z 10.00  -k 1.0 -c 40 
-python perspin_current_maps_parallel.py -z 10.00  -k 2.0 -c 40  
-python perspin_current_maps_parallel.py -z 10.00  -k 10.0 -c 40   
-python perspin_current_maps_parallel.py -z 10.00  -k 100000.0 -c 40 
+python perspin_current_maps_parallel.py -z 10.00 -k 0.0 -c 20 
+python perspin_current_maps_parallel.py -z 10.00  -k 1.0 -c 20 
+python perspin_current_maps_parallel.py -z 10.00  -k 2.0 -c 20  
+python perspin_current_maps_parallel.py -z 10.00  -k 10.0 -c 20   
+python perspin_current_maps_parallel.py -z 10.00  -k 100000.0 -c 20 
+
+
+echo "Finished General Job" | mailx -s "General Job Finished" joskodeboer@gmail.com
