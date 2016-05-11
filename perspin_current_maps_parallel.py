@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 from matplotlib.ticker import MaxNLocator
 from matplotlib.mlab import griddata 
+from scipy.constants import physical_constants as pc
 from igf import *
 import sys as sys
 import argparse as argparse  
@@ -46,11 +47,20 @@ parser.add_argument(
     type = float,
     default = 2.0
 )   
+parser.add_argument(
+    '-z',
+    '--zeta',
+    help='Mutual interaction',
+    action='store',
+    type = float,
+    default = 1.0
+)   
 args    = parser.parse_args() 
  
 cores = args.cores
 param_type = args.param
 ksi = args.ksi
+zeta = args.zeta
 
 ###
 bias_left = -1
@@ -77,6 +87,38 @@ tick_min = 'auto'
 cmap = plt.get_cmap('afmhot') 
 ###
 
+def ana_current(arguments): 
+    epsilon_res = 250
+    biaswindow  = arguments[0]
+    alpha       = arguments[1]
+    tau         = arguments[2]
+    gamma       = arguments[3]
+    capacitive  = arguments[4]
+    beta        = arguments[5]
+    levels      = arguments[6]
+    levels_ni   = levels
+    ksi         = arguments[7]
+    realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+    
+    delta = lambda VV: np.sqrt( (alpha * VV )**2 + (2. * tau )**2)
+    epsilon_1 = lambda VV: levels_ni - 0.5 * delta(VV)
+    epsilon_2 = lambda VV: levels_ni + 0.5 * delta(VV)
+
+
+    analytic_current_0 = lambda VV: realscale * gamma * ( 2. * tau)**2 / (delta(VV)**2 + gamma**2)
+    analytic_current_1 = lambda VV: np.arctan( (0.5 * VV - epsilon_1(VV))/(gamma/2.0))
+    analytic_current_2 = lambda VV: np.arctan( (0.5 * VV + epsilon_1(VV))/(gamma/2.0))
+    analytic_current_3 = lambda VV: np.arctan( (0.5 * VV - epsilon_2(VV))/(gamma/2.0))
+    analytic_current_4 = lambda VV: np.arctan( (0.5 * VV + epsilon_2(VV))/(gamma/2.0))
+    analytic_current_5 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_1(VV))**2 + (gamma/2.0)**2)/((0.5*VV+epsilon_1(VV))**2 + (gamma/2.0)**2))
+    analytic_current_6 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_2(VV))**2 + (gamma/2.0)**2)/((0.5*VV+epsilon_2(VV))**2 + (gamma/2.0)**2))
+
+    analytic_current = lambda VV: analytic_current_0(VV) * ( analytic_current_1(VV)+ analytic_current_2(VV)+ analytic_current_3(VV)+ analytic_current_4(VV)+ analytic_current_5(VV)+ analytic_current_6(VV))
+
+    current = analytic_current( biaswindow)
+    current /= np.max(current)
+    return [biaswindow, current]
+
 def calculate_current(arguments): 
     epsilon_res = 250
     biaswindow  = arguments[0]
@@ -87,6 +129,7 @@ def calculate_current(arguments):
     beta        = arguments[5]
     levels      = arguments[6]
     ksi         = arguments[7]
+    zeta        = arguments[8]
     
     array_bias = []     
     bias_array_current = []
@@ -119,17 +162,17 @@ def calculate_current(arguments):
         interaction[2][3] = ksi * capacitive
         interaction[3][2] = ksi * capacitive
 
-        interaction[0][3] = capacitive
-        interaction[3][0] = capacitive
+        interaction[0][3] = zeta*capacitive
+        interaction[3][0] = zeta*capacitive
 
-        interaction[0][2] = capacitive
-        interaction[2][0] = capacitive
+        interaction[0][2] = zeta*capacitive
+        interaction[2][0] = zeta*capacitive
 
-        interaction[1][3] = capacitive
-        interaction[3][1] = capacitive
+        interaction[1][3] = zeta*capacitive
+        interaction[3][1] = zeta*capacitive
 
-        interaction[1][2] = capacitive
-        interaction[2][1] = capacitive
+        interaction[1][2] = zeta*capacitive
+        interaction[2][1] = zeta*capacitive
 
         ##print interaction
         #sys.exit(0)
@@ -170,16 +213,17 @@ biaswindow = np.linspace(bias_left, bias_right, bias_res)
 param_space = np.linspace(param_left,param_right,param_res)
 
 manager = taskManager( cores, calculate_current ) 
-
+#manager = taskManager( cores, ana_current ) 
+#print "Using analytic current..."
 for param in param_space: 
-    beta = 250.00  
-    gamma = 0.010
-    tau = 0.020
-    alpha = 0.300
-    capacitive = 0.117 
-    alpha = 0.25
+    beta        = 250.00  
+    gamma       = 0.010
+    tau         = 0.020
+    alpha       = 0.300
+    capacitive  = 0.117 
+    alpha       = 0.25
      
-    levels = - 0.100 
+    levels = -0.100 
     if param_type == 'e':
         levels = param
     elif param_type == 'U':
@@ -193,9 +237,11 @@ for param in param_space:
     elif param_type == 'g':
         gamma = param
     elif param_type == 'o':
-        onsite = param 
+        ksi = param 
+    elif param_type == 'z':
+        zeta = param 
     
-    manager.add_params([biaswindow, alpha, tau, gamma, capacitive, beta, levels, ksi]) 
+    manager.add_params([biaswindow, alpha, tau, gamma, capacitive, beta, levels, ksi, zeta]) 
 manager.execute()
 results = manager.final()
 
@@ -286,4 +332,7 @@ global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 ###
 
-plt.savefig("perspin_current_map_parallel_ksi%.3f.png" % ksi) 
+#param_type = args.param
+#ksi = args.ksi
+#zeta = args.zeta
+plt.savefig("perspin_current_map_parallel_%s_ksi%.3f_zeta%.3f.png" % (param_type, ksi, zeta)) 
