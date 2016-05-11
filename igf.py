@@ -74,7 +74,8 @@ class igfwl(object):
             
             if norm_squared > 0: #zero is appended at the end
                 energy          = np.dot(state.T, np.dot( self.epsilon, state))
-                interaction     = np.sum(np.dot( self.u, state))
+                interaction     = np.dot(state.T, np.dot( self.u, state))
+                #print state, np.dot(self.u, state) 
                 #print interaction
                 energy_vector.append( energy + interaction )
                 

@@ -10,17 +10,17 @@ global_time_start = time.time()
 
 plotting_mode = 0
 
-alpha = 0.74
-tau = 0.005
-gamma = 0.01
-bias = 0.25*1
-capacitive = .100*1
-ksi = 2.0
+beta        = 250.00  
+gamma       = 0.010
+tau         = 0.020
+alpha       = 0.300
+capacitive  = 0.117 
+alpha       = 0.25
+levels      = -0.122
+bias        = 0.00
 
-
-#levels set to zero-
-levels = -0.05
-levels= -capacitive
+ksi = 2.0 * 1e9
+zeta = 1.0 *0
 
 hamiltonian = np.zeros((4,4))
 
@@ -36,10 +36,10 @@ tunnel[1][3] = tau
 #right-left
 tunnel[2][0] = tau  
 tunnel[3][1] = tau  
- 
+
 #change these numbers based on visual inspection
-epsilon_left = -.6
-epsilon_right = .4
+epsilon_left = -.3
+epsilon_right = 0
 epsilon_res = 10000
 
 interaction = np.zeros((4,4))
@@ -50,17 +50,17 @@ interaction[1][0] = ksi * capacitive
 interaction[2][3] = ksi * capacitive
 interaction[3][2] = ksi * capacitive
 
-interaction[0][3] = capacitive
-interaction[3][0] = capacitive
+interaction[0][3] = zeta*capacitive
+interaction[3][0] = zeta*capacitive
 
-interaction[0][2] = capacitive
-interaction[2][0] = capacitive
+interaction[0][2] = zeta*capacitive
+interaction[2][0] = zeta*capacitive
 
-interaction[1][3] = capacitive
-interaction[3][1] = capacitive
+interaction[1][3] = zeta*capacitive
+interaction[3][1] = zeta*capacitive
 
-interaction[1][2] = capacitive
-interaction[2][1] = capacitive
+interaction[1][2] = zeta*capacitive
+interaction[2][1] = zeta*capacitive
 
 ##print interaction
 #sys.exit(0)
@@ -71,9 +71,7 @@ gamma_left[1][1] = gamma
 gamma_right = np.zeros((4,4))
 gamma_right[2][2] = gamma
 gamma_right[3][3] = gamma
-
-beta = 250.0*1
-
+ 
 
 calculation = igfwl(
     hamiltonian, 
@@ -95,7 +93,8 @@ for i in calculation.generate_superset(0):
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 
 
-fig = plt.figure(figsize=(10, 10), dpi=1080)
+#fig = plt.figure(figsize=(10, 10), dpi=1080)
+fig = plt.figure()
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
 fig.subplots_adjust(left=0.17)
@@ -106,7 +105,7 @@ ylabel = ""
 plt.rc('font', family='serif')
 
 minimum = 0.0
-maximum = 0.2
+maximum = 2.0
 if plotting_mode == 0 or plotting_mode == 2:
     
     #It is unfeasible to plot all the channels. Sum them up!
@@ -147,8 +146,8 @@ elif plotting_mode == 1 or plotting_mode == 3:
     ylabel = "Spectral"
 
 if maximum < minimum:
-    maximum = 1.0
-    
+    #maximum = 1.0
+    minimum = 0.00
 plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
@@ -175,7 +174,8 @@ plt.plot(values, height, 'ko')
 if plotting_mode == 2 or plotting_mode == 3:
     plt.savefig('perspin_two_site.svg')
 else:    
-    plt.savefig('perspin_two_site.png')
+    plt.show()
+    #plt.savefig('perspin_two_site.png')
 
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
