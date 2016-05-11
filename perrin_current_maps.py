@@ -48,12 +48,18 @@ for param in param_space:
     bias_array_current = [] 
     for bias in biaswindow:
 
-        alpha = 0.74
-        tau = 0.0241
-        gamma = 0.0102
-        levels = -0.05
-        capacitive = 0.15*0
-        beta = 250.00
+        alpha = 0.25
+        tau = 0.02
+        gamma = 0.01
+        bias = 0.0
+        capacitive = .117 
+        beta = 250.0
+                
+        levels      = -0.122
+        ksi = 2.0 * 1e9
+        zeta = 1.0 *0
+
+        
         
         if param_type == 'e':
             levels = param
@@ -67,28 +73,57 @@ for param in param_space:
             tau = param
         elif param_type == 'g':
             gamma = param
-        
-        tunnel = np.zeros((2,2))
-        tunnel[0][1] = -tau
-        tunnel[1][0] = -tau 
-
-        interaction = np.zeros((2,2))
-        interaction[0][1] = capacitive
-        interaction[1][0] = capacitive
-
-
-        gamma_left = np.zeros((2,2))
-        gamma_left[0][0] = gamma
-
-        gamma_right = np.zeros((2,2))
-        gamma_right[1][1] = gamma
-
-
-        hamiltonian = np.zeros((2,2))
+                
+        hamiltonian = np.zeros((4,4))
 
         hamiltonian[0][0] = levels + 0.5 * alpha * bias
-        hamiltonian[1][1] = levels - 0.5 * alpha * bias
+        hamiltonian[1][1] = levels + 0.5 * alpha * bias
+        hamiltonian[2][2] = levels - 0.5 * alpha * bias
+        hamiltonian[3][3] = levels - 0.5 * alpha * bias
 
+        tunnel = np.zeros((4,4))
+        tunnel[0][2] = tau  
+        tunnel[1][3] = tau  
+
+        #right-left
+        tunnel[2][0] = tau  
+        tunnel[3][1] = tau  
+
+        #change these numbers based on visual inspection
+        epsilon_left = -.3
+        epsilon_right = 0
+        epsilon_res = 10000
+
+        interaction = np.zeros((4,4))
+
+        interaction[0][1] = ksi * capacitive
+        interaction[1][0] = ksi * capacitive
+
+        interaction[2][3] = ksi * capacitive
+        interaction[3][2] = ksi * capacitive
+
+        interaction[0][3] = zeta*capacitive
+        interaction[3][0] = zeta*capacitive
+
+        interaction[0][2] = zeta*capacitive
+        interaction[2][0] = zeta*capacitive
+
+        interaction[1][3] = zeta*capacitive
+        interaction[3][1] = zeta*capacitive
+
+        interaction[1][2] = zeta*capacitive
+        interaction[2][1] = zeta*capacitive
+
+        ##print interaction
+        #sys.exit(0)
+        gamma_left = np.zeros((4,4))
+        gamma_left[0][0] = gamma
+        gamma_left[1][1] = gamma
+
+        gamma_right = np.zeros((4,4))
+        gamma_right[2][2] = gamma
+        gamma_right[3][3] = gamma
+        
         calculation = igfwl(
         hamiltonian, 
         tunnel,
