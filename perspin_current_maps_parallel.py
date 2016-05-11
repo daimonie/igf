@@ -286,4 +286,4 @@ global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 ###
 
-plt.savefig('perspin_current_map_parallel_ksi%.3f.png') 
+plt.savefig("perspin_current_map_parallel_ksi%.3f.png" % ksi) 
