@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for u in 0.0 0.03 0.06 0.09 0.12 0.15
+do
+    for e in -0.0 -0.03 -0.06 -0.09 -0.12 -0.15
+    do
+        echo fit_visual_${e}_${u}.png
+        python perrin_exp_roughfit_visualise.py -s 651 -a 0.5 -t 0.006 -g 0.006 -e $e -u $u
+        mv fit_visualise.png fit_visual_${e}_${u}.png
+        chromium fit_visual_${e}_${u}.png
+    done
+done
