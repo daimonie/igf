@@ -269,9 +269,14 @@ plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
  
 plt.xticks(np.array([-0.25, 0.00, 0.25])) 
-if maximum * nano > 10:
+
+if maximum * nano > 25:
+    plt.yticks([-50,-25, 0, 25, 50])
+elif maximum * nano > 15:
+    plt.yticks([-25, -15, 0 ,15 , 25])
+elif maximum * nano > 10:
     plt.yticks([-15,-10, -5, 0, 5, 10, 15])
-if maximum * nano > 5:
+elif maximum * nano > 5:
     plt.yticks([-10, -5, 0, 5,10])
 else:
     plt.yticks([-5, -2.5, 0, 2.5,5])
