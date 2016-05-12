@@ -19,10 +19,74 @@ global_time_start = time.time()
 plotting_mode = 0
 
 ###
-sep = 650
-row = -60
-calculate_current = True
-#calculate_current = False
+parser  = argparse.ArgumentParser(prog="roughfit visualise",
+  description = "Plots experimental current, calculated current and finally the analytical non-interacting current.")  
+  
+parser.add_argument(
+    '-s',
+    '--sep',
+    help='Separation data file',
+    action='store',
+    type = int,
+    default = 638
+) 
+parser.add_argument(
+    '-a',
+    '--alpha', 
+    action='store',
+    type = float,
+    default = .25
+)    
+parser.add_argument(
+    '-t',
+    '--tau', 
+    action='store',
+    type = float,
+    default = .006
+)    
+parser.add_argument(
+    '-g',
+    '--gamma', 
+    action='store',
+    type = float,
+    default = .010
+)    
+parser.add_argument(
+    '-e',
+    '--epsilon', 
+    action='store',
+    type = float,
+    default = -.112
+)    
+parser.add_argument(
+    '-u',
+    '--capacitive', 
+    action='store',
+    type = float,
+    default = .117
+)    
+parser.add_argument(
+    '-l',
+    '--level', 
+    action='store',
+    type = float,
+    default = .00
+)    
+
+args    = parser.parse_args()  
+sep = args.sep
+
+tau = args.tau
+gamma = args.gamma
+levels = args.epsilon
+alpha = args.alpha
+capacitive = args.capacitive
+levels_ni = args.level
+
+ 
+calculate_current = True 
+if capacitive < 0:
+    calculate_current = False
 
 editing_parameters = False
 editing_parameters = True
@@ -36,29 +100,9 @@ experimental_bias, experimental_current = read_experiment(exp_file)
 original_current = experimental_current
 experimental_current = (experimental_current - experimental_current[::-1])/2.0
 
-points_filter = 5 
+points_filter = 5
 conv_filter = np.ones(points_filter)/points_filter
 experimental_current = np.convolve(experimental_current, conv_filter, mode='same')
-
-filename = "fit/rough_fit_%d.txt" % sep
-
-file_handler = open( filename, "r" );
-data = np.genfromtxt(file_handler, dtype=None,skip_footer=3);  
-if row < 0:
-    error_array = data[:, 7]
-    row = np.where( error_array <= error_array.min()*1.05)[0]
-    row = row.min()
-
-    print "Lowest error row is %d." % row
-else:
-    print "Calculate error row %d." %  row
-tau = data[row, 0]
-gamma = data[row, 1]
-levels = data[row, 2]
-alpha = data[row, 3]
-capacitive = data[row, 4]
-scaler = data[row, 5]
-error = data[row, 6]
 
 print "Fitted parameters:"
 print "\t tau = %2.3f" % tau
@@ -66,27 +110,10 @@ print "\t gamma = %2.3f" % gamma
 print "\t levels = %2.3f" % levels
 print "\t alpha = %2.3f" % alpha
 print "\t capacitive = %2.3f" % capacitive
-print "\t scaler = %2.3f" % scaler
-print "\t error = %2.3f" % error
 ### 
 # left, right are now +- eV/2, see Fig 4b in Perrin(2014)
 epsilon_res = 1000
 
-
-levels_ni = 0.00
-if editing_parameters:
-    print "Changing parameters for my convenience."
-     
-    gamma = 0.010
-    tau = 0.020
-    alpha = 0.300
-    capacitive = 0.117
-    levels = -0.122
-     
-    alpha = 0.25
-     
-    levels_ni = 0.00
-    
 bias_left = -1
 bias_right = 1
 bias_res = 100
@@ -168,9 +195,11 @@ else:
 scale, error, scaleerror = calculate_error( experimental_bias, current, experimental_current )
 print "Error is %2.3e, scale factor %.3e, scale error %.3e" % (error, scale, scaleerror)
 
-minimum = 1.2 * np.min(current)
-maximum = 1.2 * np.max(current)
+minimum = 1.2 * np.min(experimental_current)
+maximum = 1.2 * np.max(experimental_current)
 
+maximum = np.abs([minimum, maximum]).max()
+minimum = -maximum
 fig = plt.figure(figsize=(12, 10), dpi=1080)
 ax = fig.add_subplot(111)
 plt.xticks(fontsize=30)
@@ -213,18 +242,18 @@ new_scale = experimental_current.max() / current.max()
 
 current *= new_scale
 
-
-plt.plot(biaswindow, perrin_current, 'm-', label='non-interacting theoretical') 
-plt.plot(biaswindow, current, 'g-', label='interaction theoretical') 
-#plt.plot(experimental_bias, original_current, 'b--', label='experimental')   
-plt.plot(experimental_bias, experimental_current, 'r--', label='anti-symmetrised experimental')   
+nano = 1e9
+plt.plot(biaswindow, nano*perrin_current, 'm-', label='non-interacting theoretical') 
+plt.plot(biaswindow, nano*current, 'g-', label='interaction theoretical') 
+plt.plot(experimental_bias, nano*original_current, 'b-', label='experimental')   
+plt.plot(experimental_bias, nano*experimental_current, 'r--', label='anti-symmetrised experimental')   
 #plt.legend()
 
-ax.text( 0.05, 0.40 * experimental_current.min(), "$\\tau=%.3f$" % tau , fontsize=30 )
-ax.text( 0.05, 0.52 * experimental_current.min(), "$\\gamma=%.3f$" % gamma , fontsize=30 )
-ax.text( 0.05, 0.64 * experimental_current.min(), "$\\alpha=%.3f$" % alpha , fontsize=30 )
-ax.text( 0.05, 0.76 * experimental_current.min(), "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
-ax.text( 0.05, 0.88 * experimental_current.min(), "$U=%.3f$" % capacitive , fontsize=30 )
+ax.text( 0.05, 0.40 * nano*experimental_current.min(), "$\\tau=%.3f$" % tau , fontsize=30 )
+ax.text( 0.05, 0.52 * nano*experimental_current.min(), "$\\gamma=%.3f$" % gamma , fontsize=30 )
+ax.text( 0.05, 0.64 * nano*experimental_current.min(), "$\\alpha=%.3f$" % alpha , fontsize=30 )
+ax.text( 0.05, 0.76 * nano*experimental_current.min(), "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
+ax.text( 0.05, 0.88 * nano*experimental_current.min(), "$U=%.3f$" % capacitive , fontsize=30 )
 
 
 plt.legend(bbox_to_anchor=(0., 1.04, 1., .102), loc=3,
@@ -232,23 +261,27 @@ plt.legend(bbox_to_anchor=(0., 1.04, 1., .102), loc=3,
 
 
 title = "Current versus bias"
-xlabel = "Bias $V_b$"
-ylabel = "$I(V_b)$"
+xlabel = "Bias $V_b$ [V]"
+ylabel = "Current $I(V_b)$  [nA] "
  
-#plt.ylim([minimum, maximum])
+plt.ylim([minimum, maximum])
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
  
 plt.xticks(np.array([-0.25, 0.00, 0.25])) 
-plt.yticks(np.linspace( experimental_current.min(), experimental_current.max(), 5))
-
+if maximum * nano > 10:
+    plt.yticks([-15,-10, -5, 0, 5, 10, 15])
+if maximum * nano > 5:
+    plt.yticks([-10, -5, 0, 5,10])
+else:
+    plt.yticks([-5, -2.5, 0, 2.5,5])
 minorLocator1 = AutoMinorLocator(5)
 minorLocator2 = AutoMinorLocator(5)
 ax.xaxis.set_minor_locator(minorLocator1) 
 ax.yaxis.set_minor_locator(minorLocator2) 
 
 ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-ax.yaxis.set_major_formatter(FormatStrFormatter('%.2e'))
+ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
 plt.tick_params(which='both', width=2)
 plt.tick_params(which='major', length=20)
