@@ -12,10 +12,10 @@ global_time_start = time.time()
 plotting_mode = 0
 
 alpha = 0.74
-tau = -0.0241
-gamma = 0.0102
-levels = -0.25
-bias = 0.25*4
+tau = 0.0241
+gamma = 0.031
+levels = -0.005
+bias = 0.0
 
 
 #levels set to zero-
@@ -133,7 +133,7 @@ plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
  
  
-title = "Effective parameters due to interaction. $\\beta=%.3f$, $V=%.3f$, $\\epsilon_0=%.3f$, $\\Gamma=%.3f$, $\\tau=%.3f$,$\\alpha=%.3f$, " %(beta,
+title = "Effective parameters. $\\beta=%.3f$, $V=%.3f$, $\\epsilon_0=%.3f$, $\\Gamma=%.3f$, $\\tau=%.3f$,$\\alpha=%.3f$, " %(beta,
     bias, levels, gamma, tau, alpha)
 xlabel = "Capacitive Interaction $U$"
 ylabel = "Strength (eV)"
@@ -156,4 +156,4 @@ plt.ylabel(ylabel, fontsize=15)
 plt.title( "%s" % (title), fontsize=15)     
 plt.legend(loc='upper left')
 
-plt.show() 
+plt.savefig('perrin_effective.pdf') 
