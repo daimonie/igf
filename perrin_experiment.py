@@ -1,6 +1,6 @@
 import sys as sys
-print "WARNING: CRASHES HOME COMPUTER. USE WITH CARE."
-sys.exit(0)
+#print "WARNING: CRASHES HOME COMPUTER. USE WITH CARE."
+#sys.exit(0)
 import numpy as np
 import scipy.interpolate as si
 from scipy.optimize import minimize
@@ -23,13 +23,16 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib.mlab import griddata 
 ###
 global_time_start = time.time()
+def kitty():
+    print "Mew"
+    sys.exit(0)
 ####
-points = 3
+points = 5
 tick_num = 50
 
-cmap = plt.get_cmap('ocean') 
+cmap = plt.get_cmap('RdBu') 
 ###
-separation_array = range(636, 665)
+separation_array = range(638, 670)
         
         
 data_sep = np.array([])
@@ -59,8 +62,10 @@ for sep in separation_array:
         data_bias = np.append(data_bias, bias)
         data_current = np.append(data_current, current)
 ###
+fine_res = 100
+fine_bias_array = np.linspace( np.min(bias_array), np.max(bias_array), fine_res) 
 [mesh_bias, mesh_sep] = np.meshgrid(
-    bias_array,
+    fine_bias_array,
     separation_array
 )
  
@@ -71,7 +76,6 @@ mesh_current = griddata(
     mesh_bias,
     mesh_sep,
     interp='linear')
-
 tick_min = np.min(data_current)
 tick_max = np.max(data_current) 
 
@@ -88,13 +92,13 @@ for t in cb.ax.get_yticklabels():
      t.set_fontsize(20)
 
 plt.rc('font', family='serif')
-
+#kitty()
 
 ax.set_xlabel( "Bias $V$",fontsize=30); 
 ax.set_ylabel( "Separation",fontsize=30); 
 ax.set_title( "Filter average %d" % points,fontsize=30)
 
-plt.show()
+plt.savefig('perrin_experiment.pdf')
 
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
