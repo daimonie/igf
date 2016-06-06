@@ -1,0 +1,390 @@
+import sys as sys
+import numpy as np
+from paralleltask import *
+import scipy.interpolate as si
+from scipy.optimize import minimize
+from scipy.constants import physical_constants as pc
+from igf import *
+#Command line arguments.
+import argparse as argparse  
+import time
+from experiment import *
+##matplotlib
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
+from matplotlib import cm
+from matplotlib.ticker import FormatStrFormatter
+from scipy.constants import physical_constants as pc
+###
+global_time_start = time.time()
+def kitty():
+    print "Mew"
+    sys.exit(0)
+###
+
+parser  = argparse.ArgumentParser(prog="roughfit visualise",
+  description = "Plots experimental current, calculated current and finally the analytical non-interacting current.")  
+  
+parser.add_argument(
+    '-s',
+    '--sep',
+    help='Separation data file',
+    action='store',
+    type = int,
+    default = 638
+) 
+parser.add_argument(
+    '-a',
+    '--alpha', 
+    action='store',
+    type = float,
+    default = .25
+)    
+parser.add_argument(
+    '-t',
+    '--tau', 
+    action='store',
+    type = float,
+    default = .006
+)    
+parser.add_argument(
+    '-g',
+    '--gamma', 
+    action='store',
+    type = float,
+    default = .010
+)    
+parser.add_argument(
+    '-e',
+    '--epsilon', 
+    action='store',
+    type = float,
+    default = -.112
+)    
+parser.add_argument(
+    '-u',
+    '--capacitive', 
+    action='store',
+    type = float,
+    default = .117
+)    
+parser.add_argument(
+    '-l',
+    '--level', 
+    action='store',
+    type = float,
+    default = .00
+)    
+parser.add_argument(
+    '-z',
+    '--zeta', 
+    action='store',
+    type = float,
+    default = .00
+)    
+parser.add_argument(
+    '-k',
+    '--ksi', 
+    action='store',
+    type = float,
+    default = .00
+)  
+parser.add_argument(
+    '-c',
+    '--cores', 
+    action='store',
+    type = int,
+    default = 4
+)    
+parser.add_argument(
+    '-m',
+    '--mode', 
+    action='store',
+    type = int,
+    default = 0
+)    
+
+args    = parser.parse_args()  
+sep = args.sep
+
+tau         = args.tau
+gamma       = args.gamma
+levels      = args.epsilon
+alpha       = args.alpha
+capacitive  = args.capacitive
+levels_ni   = args.level
+cores       = args.cores
+zeta        = args.zeta
+ksi         = args.ksi
+mode        = args.mode
+if mode < 0 or mode > 3:
+    raise Exception("Improper mode.")
+###
+
+separation_array = range(638, 670)        
+        
+data_bias = np.zeros(( len(separation_array)-1, 404))
+data_current = np.zeros(( len(separation_array)-1, 404))
+
+i = 0          
+for sep in separation_array:
+    if sep != 645:
+        file = "exp_data/IV130328_7_%d.dat" % sep
+        #print "Reading [%s]" % file
+        bias, current = read_experiment(file)
+     
+        filter = np.ones(15)/15.0
+        current = np.convolve(current, filter, mode='same')
+         
+        bias_array = bias 
+                
+        data_bias[i]    = bias
+        data_current[i] = current
+        
+        i += 1
+###
+bias         = data_bias.mean(axis=0)
+experimental = data_current.mean(axis=0) / 1e-9
+### 
+def calculate_formula(arguments): 
+    epsilon_res = 250
+    bias         = arguments[0]
+    alpha       = arguments[1]
+    tau         = arguments[2]
+    gamma       = arguments[3]
+    capacitive  = arguments[4]
+    beta        = arguments[5]
+    levels      = arguments[6]
+    levels_ni   = levels
+    ksi         = arguments[7]
+    realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+    
+    delta = lambda VV: np.sqrt( (alpha * VV )**2 + (2. * tau )**2)
+    epsilon_1 = lambda VV: levels_ni - 0.5 * delta(VV)
+    epsilon_2 = lambda VV: levels_ni + 0.5 * delta(VV)
+
+
+    analytic_current_0 = lambda VV: realscale * gamma * ( 2. * tau)**2 / (delta(VV)**2 + gamma**2)
+    analytic_current_1 = lambda VV: np.arctan( (0.5 * VV - epsilon_1(VV))/(gamma/2.0))
+    analytic_current_2 = lambda VV: np.arctan( (0.5 * VV + epsilon_1(VV))/(gamma/2.0))
+    analytic_current_3 = lambda VV: np.arctan( (0.5 * VV - epsilon_2(VV))/(gamma/2.0))
+    analytic_current_4 = lambda VV: np.arctan( (0.5 * VV + epsilon_2(VV))/(gamma/2.0))
+    analytic_current_5 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_1(VV))**2 + (gamma/2.0)**2)/((0.5*VV+epsilon_1(VV))**2 + (gamma/2.0)**2))
+    analytic_current_6 = lambda VV: gamma/2.0/delta(VV) * np.log( ((0.5*VV-epsilon_2(VV))**2 + (gamma/2.0)**2)/((0.5*VV+epsilon_2(VV))**2 + (gamma/2.0)**2))
+
+    analytic_current = lambda VV: analytic_current_0(VV) * ( analytic_current_1(VV)+ analytic_current_2(VV)+ analytic_current_3(VV)+ analytic_current_4(VV)+ analytic_current_5(VV)+ analytic_current_6(VV))
+
+    current = analytic_current( bias)
+    return [bias, current]
+
+def calculate_spinfull(arguments): 
+    epsilon_res = 250
+    bias        = arguments[0]
+    alpha       = arguments[1]
+    tau         = arguments[2]
+    gamma       = arguments[3]
+    capacitive  = arguments[4]
+    beta        = arguments[5]
+    levels      = arguments[6]
+    ksi         = arguments[7]
+    zeta        = arguments[8]
+    levels_ni   = levels
+    realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+    
+    hamiltonian = np.zeros((4,4))
+
+    hamiltonian[0][0] = levels + 0.5 * alpha * bias
+    hamiltonian[1][1] = levels + 0.5 * alpha * bias
+    hamiltonian[2][2] = levels - 0.5 * alpha * bias
+    hamiltonian[3][3] = levels - 0.5 * alpha * bias
+
+    tunnel = np.zeros((4,4))
+    tunnel[0][2] = tau  
+    tunnel[1][3] = tau  
+
+    #right-left
+    tunnel[2][0] = tau  
+    tunnel[3][1] = tau   
+
+    interaction = np.zeros((4,4))
+
+    interaction[0][1] = ksi * capacitive
+    interaction[1][0] = ksi * capacitive
+
+    interaction[2][3] = ksi * capacitive
+    interaction[3][2] = ksi * capacitive
+
+    interaction[0][3] = zeta*capacitive
+    interaction[3][0] = zeta*capacitive
+
+    interaction[0][2] = zeta*capacitive
+    interaction[2][0] = zeta*capacitive
+
+    interaction[1][3] = zeta*capacitive
+    interaction[3][1] = zeta*capacitive
+
+    interaction[1][2] = zeta*capacitive
+    interaction[2][1] = zeta*capacitive
+
+    ##print interaction
+    #sys.exit(0)
+    gamma_left = np.zeros((4,4))
+    gamma_left[0][0] = gamma
+    gamma_left[1][1] = gamma
+
+    gamma_right = np.zeros((4,4))
+    gamma_right[2][2] = gamma
+    gamma_right[3][3] = gamma
+    
+    calculation = igfwl(
+        hamiltonian, 
+        tunnel,
+        interaction, 
+        gamma_left,
+        gamma_right, 
+        beta
+    ) 
+    
+    epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
+   
+    spinfull_transmission = calculation.full_transmission(epsilon)  
+    spinfull_current = realscale*np.trapz(spinfull_transmission, epsilon)
+
+    return [bias, spinfull_current]
+def calculate_spinless(arguments):  
+    epsilon_res = 250
+    bias        = arguments[0]
+    alpha       = arguments[1]
+    tau         = arguments[2]
+    gamma       = arguments[3]
+    capacitive  = arguments[4]
+    beta        = arguments[5]
+    levels      = arguments[6]
+    ksi         = arguments[7]
+    zeta        = arguments[8]
+    levels_ni   = levels
+    realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+
+    spinless_hamiltonian = np.zeros((2,2))
+
+    spinless_hamiltonian[0][0] = levels + 0.5 * alpha * bias
+    spinless_hamiltonian[1][1] = levels - 0.5 * alpha * bias
+
+    spinless_tunnel = np.zeros((2,2))
+    spinless_tunnel[0][1] = -tau
+    spinless_tunnel[1][0] = -tau
+
+    spinless_interaction = np.zeros((2,2))
+    spinless_interaction[0][1] = capacitive
+    spinless_interaction[1][0] = capacitive
+
+
+    spinless_gamma_left = np.zeros((2,2))
+    spinless_gamma_left[0][0] = gamma
+
+    spinless_gamma_right = np.zeros((2,2))
+    spinless_gamma_right[1][1] = gamma
+
+    spinless_calculation = igfwl(
+        spinless_hamiltonian, 
+        spinless_tunnel,
+        spinless_interaction, 
+        spinless_gamma_left,
+        spinless_gamma_right, 
+        beta
+    )
+
+    
+    epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
+  
+    spinless_transmission = spinless_calculation.full_transmission(epsilon)
+    spinless_current = realscale*np.trapz(spinless_transmission, epsilon) 
+     
+    
+    return [bias, spinless_current]
+
+
+#### calculate current
+manager = 0
+if mode == 0:
+    manager = taskManager( cores, calculate_formula ) 
+elif mode == 1:
+    manager = taskManager( cores, calculate_spinless ) 
+elif mode == 2:
+    manager = taskManager( cores, calculate_spinfull ) 
+
+for this_bias in bias: 
+    beta        = 250.00  
+    gamma       = 0.010
+    tau         = 0.020
+    alpha       = 0.750
+    capacitive  = 0.40 
+    levels      =  -1e-6 
+    
+    manager.add_params([this_bias, alpha, tau, gamma, capacitive, beta, levels, ksi, zeta]) 
+manager.execute()
+results = manager.final()
+results = np.array(results)
+
+calculated_bias = results[:,0]
+calculated_current = results[:,1]/1e-9
+
+#######################################
+fig = plt.figure(figsize=(12, 10), dpi=1080)
+ax = fig.add_subplot(111)
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+fig.subplots_adjust(left=0.30)
+
+title = "Dummy title"
+xlabel = ""
+ylabel = ""
+plt.rc('font', family='serif')
+
+plt.plot(bias, experimental, 'm-', label='Experimental Average') 
+if mode == 0: #formula
+    plt.plot(calculated_bias, calculated_current, 'r-', label='Non-Interacting two-site model') 
+elif mode == 1: #spinless
+    plt.plot(calculated_bias, calculated_current, 'g-', label='Interacting spinless model') 
+elif mode == 2: #spinfull
+    plt.plot(calculated_bias, calculated_current, 'b-', label='Interacting spinfull model') 
+#plt.legend()
+
+param_height = -np.max([np.abs(experimental).max(), np.abs(calculated_current).max()]) 
+ax.text( 0.05, 0.40 * param_height, "$\\tau=%.3f$" % tau , fontsize=30 )
+ax.text( 0.05, 0.52 * param_height, "$\\gamma=%.3f$" % gamma , fontsize=30 )
+ax.text( 0.05, 0.64 * param_height, "$\\alpha=%.3f$" % alpha , fontsize=30 )
+ax.text( 0.05, 0.76 * param_height, "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
+ax.text( 0.05, 0.88 * param_height, "$U=%.3f$" % capacitive , fontsize=30 )
+
+
+plt.legend(bbox_to_anchor=(0., 1.04, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
+
+ 
+xlabel = "Bias $V_b$ [V]"
+ylabel = "Current $I(V_b)$  [nA] "
+ 
+plt.xlim([-0.25, 0.25])
+plt.xlabel(xlabel, fontsize=20)
+plt.ylabel(ylabel, fontsize=20)
+ 
+plt.xticks(np.array(range(11))*0.05-0.25) 
+
+minorLocator1 = AutoMinorLocator(5)
+minorLocator2 = AutoMinorLocator(5)
+ax.xaxis.set_minor_locator(minorLocator1) 
+ax.yaxis.set_minor_locator(minorLocator2) 
+
+ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+
+plt.tick_params(which='both', width=2)
+plt.tick_params(which='major', length=20)
+plt.tick_params(which='minor', length=10)
+
+plt.savefig('fit_average.pdf')
+###
+global_time_end = time.time ()
+print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
