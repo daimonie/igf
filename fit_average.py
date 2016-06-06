@@ -11,6 +11,7 @@ import time
 from experiment import *
 ##matplotlib
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib import cm
@@ -68,14 +69,7 @@ parser.add_argument(
     action='store',
     type = float,
     default = .117
-)    
-parser.add_argument(
-    '-l',
-    '--level', 
-    action='store',
-    type = float,
-    default = .00
-)    
+)     
 parser.add_argument(
     '-z',
     '--zeta', 
@@ -112,12 +106,12 @@ tau         = args.tau
 gamma       = args.gamma
 levels      = args.epsilon
 alpha       = args.alpha
-capacitive  = args.capacitive
-levels_ni   = args.level
+capacitive  = args.capacitive 
 cores       = args.cores
 zeta        = args.zeta
 ksi         = args.ksi
 mode        = args.mode
+beta        = 250.00
 if mode < 0 or mode > 3:
     raise Exception("Improper mode.")
 ###
@@ -314,15 +308,10 @@ elif mode == 1:
 elif mode == 2:
     manager = taskManager( cores, calculate_spinfull ) 
 
-for this_bias in bias: 
-    beta        = 250.00  
-    gamma       = 0.010
-    tau         = 0.020
-    alpha       = 0.750
-    capacitive  = 0.40 
-    levels      =  -1e-6 
-    
+for this_bias in bias:      
     manager.add_params([this_bias, alpha, tau, gamma, capacitive, beta, levels, ksi, zeta]) 
+    #print [this_bias, alpha, tau, gamma, capacitive, beta, levels, ksi, zeta]
+    #sys.exit(0)
 manager.execute()
 results = manager.final()
 results = np.array(results)
@@ -384,7 +373,7 @@ plt.tick_params(which='both', width=2)
 plt.tick_params(which='major', length=20)
 plt.tick_params(which='minor', length=10)
 
-plt.savefig('fit_average.pdf')
+plt.savefig('fit_average.png')
 ###
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)

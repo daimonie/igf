@@ -1,0 +1,38 @@
+#!/bin/bash
+
+for m in 0 1 2
+do
+    for u in 0.0 0.03 0.06 0.09 0.12 0.15 0.18 0.21 0.24 0.27 0.30 0.33 0.36 0.39 0.42 0.45 0.48 0.51
+    do
+        for e in -0.0 -0.03 -0.06 -0.09 -0.12 -0.15 -0.18 -0.21 -0.24 -0.27 -0.30 -0.33 -0.36 -0.39 -0.42 -0.45 -0.48 -0.51 
+        do
+            for g in 0.001 0.003 0.005 0.007 0.009 0.011 0.013 0.015
+            do
+                for a in 0.2 0.4 0.6 0.8 1.0
+                do
+                    for t in 0.005 0.010 0.015 0.020 0.025
+                    do
+                        if [[ ${m} -eq 2 ]]
+                        then
+                            for k in 0.0 0.5 1.0 1.5 2.0 5.0 10.0
+                            do
+                                for z in 0.0 0.5 1.0 1.5 2.0 5.0 10.0
+                                do
+                                    echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
+                                    python fit_average.py -c 4 -m $m -u $u -e $e -g $g -a $a -t $t
+                                    mv fit_average.png fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
+                                    chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
+                                done
+                            done
+                        else
+                            echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
+                            python fit_average.py -c 4 -m $m -u $u -e $e -g $g -a $a -t $t
+                            mv fit_average.png fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
+                            chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
+                        fi
+                    done
+                done
+            done
+        done
+    done
+done
