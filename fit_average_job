@@ -21,14 +21,14 @@ do
                                     echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
                                     python fit_average.py -c 4 -m $m -u $u -e $e -g $g -a $a -t $t
                                     mv fit_average.png fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
-                                    chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
+#                                     chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
                                 done
                             done
                         else
                             echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
                             python fit_average.py -c 4 -m $m -u $u -e $e -g $g -a $a -t $t
                             mv fit_average.png fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
-                            chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
+#                             chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
                         fi
                     done
                 done
