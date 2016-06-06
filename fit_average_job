@@ -1,4 +1,8 @@
 #!/bin/bash
+#PBS -l nodes=1:ppn=20
+#PBS -e /qsub_out/faerror.txt
+#PBS -o /qsub_out/faoutput.txt
+cd $PBS_O_WORKDIR
 
 for m in 0 1 2
 do
@@ -19,14 +23,14 @@ do
                                 for z in 0.0 0.5 1.0 1.5 2.0 5.0 10.0
                                 do
                                     echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
-                                    python fit_average.py -c 4 -m $m -u $u -e $e -g $g -a $a -t $t
+                                    python fit_average.py -c 20 -m $m -u $u -e $e -g $g -a $a -t $t
                                     mv fit_average.png fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
 #                                     chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.png
                                 done
                             done
                         else
                             echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
-                            python fit_average.py -c 4 -m $m -u $u -e $e -g $g -a $a -t $t
+                            python fit_average.py -c 20 -m $m -u $u -e $e -g $g -a $a -t $t
                             mv fit_average.png fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
 #                             chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.png
                         fi
@@ -36,3 +40,4 @@ do
         done
     done
 done
+echo "Finished Fit Average" | mailx -s " Fit Average Finished" joskodeboer@gmail.com
