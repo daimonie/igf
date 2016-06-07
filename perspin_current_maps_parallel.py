@@ -40,7 +40,7 @@ parser.add_argument(
     default = 'e'
 )   
 parser.add_argument(
-    '-k',
+    '-x',
     '--ksi',
     help='Onsite interaction',
     action='store',
@@ -54,6 +54,14 @@ parser.add_argument(
     action='store',
     type = float,
     default = 1.0
+)  
+parser.add_argument(
+    '-u',
+    '--capacitive',
+    help='Interaction',
+    action='store',
+    type = float,
+    default = 1.0
 )   
 args    = parser.parse_args() 
  
@@ -61,7 +69,13 @@ cores = args.cores
 param_type = args.param
 ksi = args.ksi
 zeta = args.zeta
+capacitive  = args.capacitive 
 
+beta        = 250.00  
+gamma       = 0.010
+tau         = 0.020
+alpha       = 0.75
+levels      = -0.100 
 ###
 bias_left = -1
 bias_right = 1
@@ -131,6 +145,7 @@ def calculate_current(arguments):
     ksi         = arguments[7]
     zeta        = arguments[8]
     
+    print "\tCalculating x=%.3f, u=%.3f\n" % (ksi, capacitive)
     array_bias = []     
     bias_array_current = []
     for bias in biaswindow:
@@ -152,7 +167,7 @@ def calculate_current(arguments):
         #change these numbers based on visual inspection
         epsilon_left = -.6
         epsilon_right = .4
-        epsilon_res = 10000
+        epsilon_res = 250
 
         interaction = np.zeros((4,4))
 
@@ -216,14 +231,6 @@ manager = taskManager( cores, calculate_current )
 #manager = taskManager( cores, ana_current ) 
 #print "Using analytic current..."
 for param in param_space: 
-    beta        = 250.00  
-    gamma       = 0.010
-    tau         = 0.020
-    alpha       = 0.300
-    capacitive  = 0.117 
-    alpha       = 0.25
-     
-    levels = -0.100 
     if param_type == 'e':
         levels = param
     elif param_type == 'U':
@@ -327,6 +334,7 @@ elif param_type == 'o':
 ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$,$\\xi=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive, ksi), fontsize=25, y=1.07) 
 
 
+plt.savefig('perspin_current_map.pdf') 
 ###
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
@@ -335,4 +343,3 @@ print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 #param_type = args.param
 #ksi = args.ksi
 #zeta = args.zeta
-plt.savefig("perspin_current_map_parallel_%s_ksi%.3f_zeta%.3f.png" % (param_type, ksi, zeta)) 

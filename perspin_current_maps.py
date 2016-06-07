@@ -33,6 +33,28 @@ param_res = 40
 #param_right = 5.00
 #param_res = 40
 
+parser  = argparse.ArgumentParser(prog="roughfit visualise",
+  description = "Plots experimental current, calculated current and finally the analytical non-interacting current.")  
+   
+parser.add_argument(
+    '-u',
+    '--capacitive', 
+    action='store',
+    type = float,
+    default = .00
+)    
+parser.add_argument(
+    '-x',
+    '--onsite', 
+    action='store',
+    type = float,
+    default = 1.00e10
+)    
+
+args    = parser.parse_args()  
+argument_capacitive = args.capacitive
+argument_onsite = args.onsite
+
 
 array_param = []
 array_bias = []    
@@ -57,11 +79,11 @@ for param in param_space:
         alpha = 0.74
         tau = 0.0241
         gamma = 0.0102
-        capacitive = 0.100
+        capacitive = argument_capacitive
         beta = 250.00
         levels = -0.05
         
-        onsite = 2.0
+        onsite = argument_onsite
         levels = - 0.100
         
         #levels = -capacitive
@@ -208,7 +230,7 @@ elif param_type == 'g':
     ax.set_ylabel( "Lead-coupling strength$\\Gamma$",fontsize=30);
 elif param_type == 'o':
     ax.set_ylabel( "On-site interaction strength",fontsize=30);
-ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$,$O=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive, onsite), fontsize=25, y=1.07) 
+ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$,$\\xi=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive, onsite), fontsize=25, y=1.07) 
 
 
 ###
@@ -216,4 +238,4 @@ global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 ###
 
-plt.savefig('perspin_current_map.png') 
+plt.savefig('perspin_current_map.pdf') 
