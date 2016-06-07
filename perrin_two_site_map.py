@@ -150,12 +150,8 @@ else:
     ax.set_title( "Perrin two-site [Transmission], $\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive), fontsize=25, y=1.07) 
     
 plt.yticks(fontsize=30)
-if plotting_mode == 0:
-    plt.show()
-elif plotting_mode == 1:
-    plt.savefig('perrin_two_site_map.png')
-elif plotting_mode == 2:
-    plt.savefig('perrin_two_site_map.svg')
+
+plt.savefig('perrin_two_site_map.png') 
 
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)

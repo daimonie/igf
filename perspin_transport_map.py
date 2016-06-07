@@ -29,7 +29,7 @@ tau = 0.02
 gamma = 0.01
 bias = 0.0
 capacitive = .117
-ksi = 2.0*10
+ksi = 3.50
 beta = 250.0
 
 array_levels = []
@@ -37,7 +37,7 @@ array_epsilon = []
 array_perspin = []
 array_perrin = []
 
-params = np.linspace( -1.0, 1.0, 40)
+params = np.linspace( -.75, .5, int(1+40./2.*1.25))
 
 for levels in params:
     print >> sys.stderr, "Starting %.3f ." % levels
@@ -228,12 +228,12 @@ ax1.set_ylabel( "Zero-bias Level $\\epsilon_0$" ,fontsize=30);
 ax2.set_xlabel( "Energy $\\epsilon$",fontsize=30);
 ax2.set_ylabel( "Zero-level $\\epsilon_0$" ,fontsize=30);
 
-ax1.set_title( "Spinless two-site $U=%.3f$, $\\xi=%.3f$" % (capacitive, ksi) , fontsize=25) 
-ax2.set_title( "Spin two-site $U=%.3f$, $\\xi=%.3f$" % (capacitive, ksi) , fontsize=25) 
+ax1.set_title( "Spinless two-site $U=%.3f$" % (capacitive) , fontsize=25) 
+ax2.set_title( "Spinfull two-site $U=%.3f$, $\\xi=%.3f$" % (capacitive, ksi) , fontsize=25) 
  
 
 ###
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 ###
-plt.savefig('perspin_transport_map.png') 
+plt.savefig('perspin_transport_map.pdf') 

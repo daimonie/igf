@@ -23,7 +23,7 @@ capacitive = .50
 levels=-capacitive*0
 
 
-gamma *= 3
+#gamma *= 3
 
 hamiltonian = np.zeros((2,2))
 
