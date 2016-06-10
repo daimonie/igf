@@ -194,11 +194,12 @@ manager = taskManager( cores, calculate_current )
 #manager = taskManager( cores, ana_current ) 
 #print "Using analytic current..."
 for param in param_space: 
-    beta        = 250.00  
-    gamma       = 0.010
-    tau         = 0.020
-    alpha       = 0.750
-    capacitive  = 0.40
+    alpha = 0.75
+    tau = 0.02
+    gamma = 0.01
+    levels = -0.5
+    capacitive = 0.40
+    beta = 250.00
      
     levels =  -1e-6
     if param_type == 'e':

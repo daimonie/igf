@@ -25,7 +25,7 @@ epsilon_res = 2500
 param_type = 'e'
 param_left = -1e-6
 param_right = -0.5
-param_res = 2500
+param_res = 250
 
 
 array_param = []
@@ -48,11 +48,11 @@ for param in param_space:
     bias_array_distribution = [] 
     for bias in biaswindow:
 
-        alpha = 0.74
-        tau = 0.0241
-        gamma = 0.0102
-        levels = -0.05
-        capacitive = 0.15
+        alpha = 0.75
+        tau = 0.02
+        gamma = 0.01
+        levels = -0.5
+        capacitive = 0.40
         beta = 250.00
         
         if param_type == 'e':
@@ -112,7 +112,11 @@ for param in param_space:
     bias_array_distribution = np.array(bias_array_distribution)
     
     array_distribution.extend(bias_array_distribution)
-         
+print "States:"
+for i in calculation.generate_superset(0):
+    #chance_value += i*chances[i]
+    ket = calculation.ket(i)
+    print "%d\t\%.3f\t%.3f" % (i, ket[0], ket[1])
 [mesh_bias, mesh_param] = np.meshgrid(
     biaswindow,
     param_space
@@ -166,4 +170,4 @@ global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 ###
 
-plt.savefig('perrin_current_map.png') 
+plt.savefig('perrin_current_map.pdf') 
