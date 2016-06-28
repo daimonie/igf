@@ -59,13 +59,16 @@ capacitive = args.capacitive
 ###
 bias_left = -2.0
 bias_right = 2.0
-bias_res = 50
+bias_res = 100
  
 
 param_type = 'e'
 param_left = -1e-6
 param_right = -0.5
 param_res = 30
+
+##param_left = -.05
+##param_right = 0.05
 
 
 #param_type = 'o'
@@ -83,7 +86,7 @@ cmap = plt.get_cmap('afmhot')
 
 def ana_current(arguments): 
     #print "Non-Interacting, arguments", arguments, "\n\n"
-    epsilon_res = 250
+    epsilon_res = 2500
     biaswindow  = arguments[0]
     alpha       = arguments[1]
     tau         = arguments[2]
@@ -93,7 +96,7 @@ def ana_current(arguments):
     levels      = arguments[6]
     levels_ni   = levels
     ksi         = arguments[7]
-    realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
+    realscale   = 2*pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
     
     delta = lambda VV: np.sqrt( (alpha * VV )**2 + (2. * tau )**2)
     epsilon_1 = lambda VV: levels_ni - 0.5 * delta(VV)
@@ -111,12 +114,12 @@ def ana_current(arguments):
     analytic_current = lambda VV: analytic_current_0(VV) * ( analytic_current_1(VV)+ analytic_current_2(VV)+ analytic_current_3(VV)+ analytic_current_4(VV)+ analytic_current_5(VV)+ analytic_current_6(VV))
 
     current = analytic_current( biaswindow)
-    current /= np.max(current)
+    #current /= np.max(current)
     return [biaswindow, current]
 
 def calculate_current(arguments): 
     #print "Interacting, arguments", arguments, "\n\n"
-    epsilon_res = 250
+    epsilon_res = 2500
     bias        = arguments[0]
     alpha       = arguments[1]
     tau         = arguments[2]
@@ -129,6 +132,7 @@ def calculate_current(arguments):
     
     array_bias = []     
     bias_array_current = [] 
+    realscale   = 2*pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
     for bias in biaswindow:
         print "Calculating epsilon %2.3f, bias %2.3f. \n" % (levels, bias)
         hamiltonian = np.zeros((2,2))
@@ -173,12 +177,12 @@ def calculate_current(arguments):
         transmission = calculation.full_transmission(epsilon) 
         current = np.trapz(transmission, epsilon)
         #current = np.exp(levels*bias)
-        
-        
+        current *= realscale 
         array_bias.append(bias) 
         bias_array_current.append(current)
         ### 
-    bias_array_current = np.array(bias_array_current) / np.max(bias_array_current)
+    #bias_array_current = np.array(bias_array_current) / np.max(bias_array_current)
+    #bias_array_current *= realscale 
     return [array_bias, bias_array_current]
 ###
 biaswindow = np.linspace(bias_left, bias_right, bias_res) 
@@ -188,7 +192,7 @@ manager = taskManager( cores, calculate_current )
 #manager = taskManager( cores, ana_current ) 
 #print "Using analytic current..."
 for param in param_space: 
-    alpha = .99
+    alpha = .5
     tau = 0.02
     gamma = 0.01
     levels = -0.5
@@ -224,8 +228,7 @@ array_current = []
 for result in results:
     biaswindow = result[0]
     current = result[1]
-    param_set = manager.get( i )
-    
+    param_set = manager.get( i ) 
     param = param_set[6]
     if param_type == 'e':
         param = param_set[6]
@@ -256,14 +259,13 @@ for result in results:
 mesh_current = griddata(
     array_bias,
     array_param,
-    array_current,
+    np.array(array_current),
     mesh_bias,
     mesh_param,
     interp='linear')
-
-if(tick_max == 'auto'): 
-    tick_max = np.max(mesh_current)
-    tick_min = np.min(mesh_current)
+mesh_current = np.log(np.abs( mesh_current ))
+tick_max = np.max(mesh_current)
+tick_min = np.min(mesh_current)
 fig, ax = plt.subplots(figsize=(25, 15), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30) 
@@ -306,4 +308,4 @@ print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
 #param_type = args.param
 #ksi = args.ksi
 #zeta = args.zeta
-plt.savefig("perrin_current_map_parallel.pdf") 
+plt.savefig("perrin_current_map_parallel_abs.pdf") 
