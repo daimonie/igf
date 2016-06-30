@@ -309,6 +309,7 @@ elif mode == 2:
     manager = taskManager( cores, calculate_spinfull ) 
 
 for this_bias in bias:      
+#for this_bias in np.linspace(-1.0, 1.0, 100):
     manager.add_params([this_bias, alpha, tau, gamma, capacitive, beta, levels, ksi, zeta]) 
     #print [this_bias, alpha, tau, gamma, capacitive, beta, levels, ksi, zeta]
     #sys.exit(0)
@@ -331,6 +332,9 @@ xlabel = ""
 ylabel = ""
 plt.rc('font', family='serif')
 
+make_same_scale = np.max(experimental) / np.max(calculated_current)
+calculated_current *= make_same_scale
+
 plt.plot(bias, experimental, 'm-', label='Experimental Average') 
 if mode == 0: #formula
     plt.plot(calculated_bias, calculated_current, 'r-', label='Non-Interacting two-site model') 
@@ -339,6 +343,8 @@ elif mode == 1: #spinless
 elif mode == 2: #spinfull
     plt.plot(calculated_bias, calculated_current, 'b-', label='Interacting spinfull model') 
 #plt.legend()
+
+ax.set_title("Scaled by %.4e ." % make_same_scale)
 
 param_height = -np.max([np.abs(experimental).max(), np.abs(calculated_current).max()]) 
 ax.text( 0.05, 0.40 * param_height, "$\\tau=%.3f$" % tau , fontsize=30 )
@@ -356,6 +362,7 @@ xlabel = "Bias $V_b$ [V]"
 ylabel = "Current $I(V_b)$  [nA] "
  
 plt.xlim([-0.25, 0.25])
+#plt.xlim([-1., 1.])
 plt.xlabel(xlabel, fontsize=20)
 plt.ylabel(ylabel, fontsize=20)
  

@@ -57,15 +57,15 @@ param_type = args.param
 capacitive = args.capacitive
 
 ###
-bias_left = -2.0
-bias_right = 2.0
+bias_left = -0.25
+bias_right = 0.25
 bias_res = 100
  
 
 param_type = 'e'
 param_left = -1e-6
 param_right = -0.5
-param_res = 30
+param_res = 50
 
 ##param_left = -.05
 ##param_right = 0.05
@@ -81,7 +81,7 @@ tick_max = 'auto'
 tick_min = 'auto'
 #tick_min = -tick_max
 
-cmap = plt.get_cmap('afmhot') 
+cmap = plt.get_cmap('ocean') 
 ###
 
 def ana_current(arguments): 
@@ -147,7 +147,7 @@ def calculate_current(arguments):
         #change these numbers based on visual inspection
         epsilon_left = -0.50
         epsilon_right = 1.00
-        epsilon_res = 10000
+        epsilon_res = 1000
 
         interaction = np.zeros((2,2))
         interaction[0][1] = capacitive
@@ -180,9 +180,7 @@ def calculate_current(arguments):
         current *= realscale 
         array_bias.append(bias) 
         bias_array_current.append(current)
-        ### 
-    #bias_array_current = np.array(bias_array_current) / np.max(bias_array_current)
-    #bias_array_current *= realscale 
+        ###  
     return [array_bias, bias_array_current]
 ###
 biaswindow = np.linspace(bias_left, bias_right, bias_res) 
@@ -193,8 +191,8 @@ manager = taskManager( cores, calculate_current )
 #print "Using analytic current..."
 for param in param_space: 
     alpha = .5
-    tau = 0.02
-    gamma = 0.01
+    tau = 0.01
+    gamma = 0.1
     levels = -0.5
     #capacitive = 0.40
     beta = 250.00
@@ -230,6 +228,7 @@ for result in results:
     current = result[1]
     param_set = manager.get( i ) 
     param = param_set[6]
+    
     if param_type == 'e':
         param = param_set[6]
     elif param_type == 'U':
@@ -243,14 +242,21 @@ for result in results:
     elif param_type == 'g':
         param = param_set[3]
     elif param_type == 'o':
-        param = param_set[7]
+        param = param_set[7] 
         
     array_bias.extend(biaswindow)
-    array_param.extend(current*0 + param)
+    array_param.extend(np.array(current)*0 + param)
     array_current.extend(current)
     
     i += 1
- 
+
+
+print " %.3e < current < %.3e" % (np.min(array_current), np.max(array_current))
+print " %.3e < log|current| < %.3e" % (np.min(np.log(np.abs(array_current)))/np.log( 10.00 ), np.max(np.log(np.abs(array_current)))/ np.log( 10.00 ))
+
+
+array_current = np.log(np.abs( array_current ) + 1e-20) / np.log( 10.00 )
+
 [mesh_bias, mesh_param] = np.meshgrid(
     biaswindow,
     param_space
@@ -259,13 +265,17 @@ for result in results:
 mesh_current = griddata(
     array_bias,
     array_param,
-    np.array(array_current),
+    array_current,
     mesh_bias,
     mesh_param,
     interp='linear')
-mesh_current = np.log(np.abs( mesh_current ))
-tick_max = np.max(mesh_current)
-tick_min = np.min(mesh_current)
+
+tick_max = np.max( array_current)
+tick_min = np.min( array_current)
+
+mesh_current[ mesh_current > tick_max ] = tick_max
+
+
 fig, ax = plt.subplots(figsize=(25, 15), dpi=1080)
 plt.xticks(fontsize=30)
 plt.yticks(fontsize=30) 
