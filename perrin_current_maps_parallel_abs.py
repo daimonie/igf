@@ -57,15 +57,15 @@ param_type = args.param
 capacitive = args.capacitive
 
 ###
-bias_left = -0.25
-bias_right = 0.25
-bias_res = 100
+bias_left = -2.
+bias_right = 2.
+bias_res = 200
  
 
-param_type = 'e'
-param_left = -1e-6
+param_type = 'U'
+param_left = 0
 param_right = -0.5
-param_res = 50
+param_res = 100
 
 ##param_left = -.05
 ##param_right = 0.05
@@ -134,7 +134,7 @@ def calculate_current(arguments):
     bias_array_current = [] 
     realscale   = 2*pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
     for bias in biaswindow:
-        print "Calculating epsilon %2.3f, bias %2.3f. \n" % (levels, bias)
+        print "Calculating epsilon %2.3f, bias %2.3f, interaction %.3f. \n" % (levels, bias, capacitive)
         hamiltonian = np.zeros((2,2))
 
         hamiltonian[0][0] = levels + 0.5 * alpha * bias
@@ -193,11 +193,10 @@ for param in param_space:
     alpha = .5
     tau = 0.01
     gamma = 0.1
-    levels = -0.5
+    levels = -0.1
     #capacitive = 0.40
     beta = 250.00
-     
-    levels =  -1e-6
+      
     if param_type == 'e':
         levels = param
     elif param_type == 'U':
