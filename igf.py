@@ -74,7 +74,7 @@ class igfwl(object):
             
             if norm_squared > 0: #zero is appended at the end
                 energy          = np.dot(state.T, np.dot( self.epsilon, state))
-                interaction     = np.dot(state.T, np.dot( self.u, state))
+                interaction     = np.dot(state.T, np.dot( self.u, state))/2.0 #divide by two. Otherwise, <l r| U |l r > =  U_LR + U_RL = 2U
                 #print state, np.dot(self.u, state) 
                 #print interaction
                 energy_vector.append( energy + interaction )
@@ -131,6 +131,8 @@ class igfwl(object):
                     scale += chances[k] * chances[l] * chances[ll]
         return scale
 #################
+# Experimental version of the module that includes the phononic expansion. Doesn't work yet.
+################
 class igfwl_vibrational(igfwl):
     def __init__(self, 
             param_epsilon, 

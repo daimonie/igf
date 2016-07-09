@@ -18,18 +18,46 @@ global_time_start = time.time()
 
 plotting_mode = 0
 
+parser  = argparse.ArgumentParser(prog="perspin transport map",
+  description = "Compare spinfull/spinless transmissions.")  
+  
+parser.add_argument(
+    '-k',
+    '--ksi',
+    help='Onsite interaction',
+    action='store',
+    type = float,
+    default = 1.0
+)   
+parser.add_argument(
+    '-u',
+    '--capacitive',
+    help='Onsite interaction',
+    action='store',
+    type = float,
+    default = 0.5
+)   
+
+
 #change these numbers based on visual inspection
-epsilon_left = -.6
-epsilon_right = .4
-epsilon_res = 10000
+epsilon_left = -.5
+epsilon_right = .5
+epsilon_res = 250
 epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res); 
 
-alpha = 0.25
+alpha = 0.5
 tau = 0.02
 gamma = 0.01
-bias = 0.0
-capacitive = .117
-ksi = 3.50
+bias = 0.25
+
+args    = parser.parse_args()  
+capacitive = args.capacitive
+ksi = args.ksi
+
+#capacitive = .500
+#ksi = 20.00
+
+
 beta = 250.0
 
 array_levels = []
@@ -37,7 +65,7 @@ array_epsilon = []
 array_perspin = []
 array_perrin = []
 
-params = np.linspace( -.75, .5, int(1+40./2.*1.25))
+params = np.linspace( -.5, -1e-6, 25)
 
 for levels in params:
     print >> sys.stderr, "Starting %.3f ." % levels
@@ -97,6 +125,15 @@ for levels in params:
 
     perspin_transmission = np.abs(perspin_calculation.full_transmission(epsilon))
 
+    
+    perspin_chances = perspin_calculation.distribution()
+    for i in range(len(perspin_chances)):
+        if perspin_chances[i] > 1e-3:
+            #print i, perspin_chances[i]
+            perspin_ket = perspin_calculation.ket(i)
+            #print perspin_ket, perspin_ket[0]
+            print "%d\t%.3f\t%d\t%d\t%d\t%d" % (i, perspin_chances[i], perspin_ket[0], perspin_ket[1], perspin_ket[2], perspin_ket[3])
+
     perrin_hamiltonian = np.zeros((2,2))
 
     perrin_hamiltonian[0][0] = levels + 0.5 * alpha * bias
@@ -132,50 +169,13 @@ for levels in params:
     
     array_perrin.extend(perrin_transmission)
     array_perspin.extend(perspin_transmission)
-    
-    ###chance inspection spinless
-    p = perrin_calculation.distribution()
-    max_p = 0.00
-    max_x = perrin_calculation.ket(0)
-    max_i = 0
-    
-    for i in perrin_calculation.generate_superset(0):
-        x = perrin_calculation.ket(i)
-        
-        if p[i] > max_p:
-            max_p = p[i]
-            max_x = x
-            max_i = i
-        #
-    #
-    print "%d\t%.3e\t%d\t%d" % (max_i, max_p, max_x[0], max_x[1])
-    
-    ###chance inspection spin
-    p = perspin_calculation.distribution()
-    max_p = 0.00
-    max_x = perspin_calculation.ket(0)
-    max_i = 0
-    
-    for i in perspin_calculation.generate_superset(0):
-        x = perspin_calculation.ket(i)
-        
-        if p[i] > max_p:
-            max_p = p[i]
-            max_x = x
-            max_i = i
-        #
-    #
-    print "%d\t%.3e\t%d\t%d\t%d\t%d" % (max_i, max_p, max_x[0], max_x[1], max_x[2], max_x[3])
+    print "Next iteration.\n"
     ###
     print >> sys.stderr, "Finished %.3f ." % levels
     
 fig, (ax1, ax2) = plt.subplots(2, figsize=(25, 15), dpi=1080)
 
-fig.subplots_adjust(hspace=0.2)
-
-plt.xticks(fontsize=30)
-plt.yticks(fontsize=30) 
-
+fig.subplots_adjust(hspace=0.4)
 
 [mesh_epsilon, mesh_param] = np.meshgrid(
     epsilon, 
@@ -202,9 +202,13 @@ mesh_perspin = griddata(
 
 cmap = plt.get_cmap('afmhot') 
 
-color_levels = MaxNLocator(nbins=20).tick_values(0, np.max([ mesh_perrin.max(), mesh_perspin.max()])) 
+max_contour = np.max([ mesh_perrin.max(), mesh_perspin.max()])
+
+color_levels = MaxNLocator(nbins=20).tick_values(0, max_contour)
+color_levels2 = MaxNLocator(nbins=20).tick_values(0, max_contour) 
+
 cf = ax1.contourf(mesh_epsilon, mesh_param, mesh_perrin, cmap=cmap, levels=color_levels)
-cf = ax2.contourf(mesh_epsilon, mesh_param, mesh_perspin, cmap=cmap, levels=color_levels)
+cf = ax2.contourf(mesh_epsilon, mesh_param, mesh_perspin, cmap=cmap, levels=color_levels2)
 
 
 cb1 = fig.colorbar(cf, ax=ax1, shrink=0.9)    
@@ -215,8 +219,14 @@ for t in cb2.ax.get_yticklabels():
 for t in cb1.ax.get_yticklabels():
      t.set_fontsize(20)
      
-     
-plt.rc('font', family='serif')
+font = {
+    'family' : 'serif',
+    'weight' : 'bold',
+    'size'   : 20
+}
+
+matplotlib.rc('font', **font)
+#plt.rc('font', family='serif')
 
 ax1.set_axis_bgcolor('black'); 
 ax2.set_axis_bgcolor('black'); 
@@ -228,8 +238,8 @@ ax1.set_ylabel( "Zero-bias Level $\\epsilon_0$" ,fontsize=30);
 ax2.set_xlabel( "Energy $\\epsilon$",fontsize=30);
 ax2.set_ylabel( "Zero-level $\\epsilon_0$" ,fontsize=30);
 
-ax1.set_title( "Spinless two-site $U=%.3f$" % (capacitive) , fontsize=25) 
-ax2.set_title( "Spinfull two-site $U=%.3f$, $\\xi=%.3f$" % (capacitive, ksi) , fontsize=25) 
+ax1.set_title( "Spinless two-site $U=%.3f$, $\\alpha=%.3f$" % (capacitive, alpha) , fontsize=25) 
+ax2.set_title( "Spinfull two-site $U=%.3f$, $\\xi=%.3f$, $V=%.3f$" % (capacitive, ksi, bias) , fontsize=25) 
  
 
 ###
