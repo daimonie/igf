@@ -15,6 +15,10 @@ from igf import *
 import sys as sys
 import argparse as argparse  
 ###
+import logging 
+
+logging.basicConfig(level=logging.DEBUG)
+###
 import time
 global_time_start = time.time() 
 ###
@@ -59,13 +63,18 @@ capacitive = args.capacitive
 ###
 bias_left = -2.
 bias_right = 2.
-bias_res = 200
+bias_res = 100
  
 
-param_type = 'U'
-param_left = 0
-param_right = -0.5
+param_type = 'e'
+param_left = -0.5
+param_right= -0.5
 param_res = 100
+
+#param_type = 'U'
+#param_left = 0
+#param_right = -0.5
+#param_res = 100
 
 ##param_left = -.05
 ##param_right = 0.05
@@ -86,7 +95,7 @@ cmap = plt.get_cmap('ocean')
 
 def ana_current(arguments): 
     #print "Non-Interacting, arguments", arguments, "\n\n"
-    epsilon_res = 2500
+    epsilon_res = 1000
     biaswindow  = arguments[0]
     alpha       = arguments[1]
     tau         = arguments[2]
@@ -119,7 +128,7 @@ def ana_current(arguments):
 
 def calculate_current(arguments): 
     #print "Interacting, arguments", arguments, "\n\n"
-    epsilon_res = 2500
+    epsilon_res = 1000
     bias        = arguments[0]
     alpha       = arguments[1]
     tau         = arguments[2]
@@ -186,14 +195,18 @@ def calculate_current(arguments):
 biaswindow = np.linspace(bias_left, bias_right, bias_res) 
 param_space = np.linspace(param_left,param_right,param_res)
 
-manager = taskManager( cores, calculate_current ) 
-#manager = taskManager( cores, ana_current ) 
+manager = 0
+if capacitive > 0:
+    manager = taskManager( cores, calculate_current ) 
+else:
+    manager = taskManager( cores, ana_current ) 
 #print "Using analytic current..."
 for param in param_space: 
-    alpha = .5
-    tau = 0.01
-    gamma = 0.1
-    levels = -0.1
+    alpha = 0.75
+    tau = 0.02
+    gamma = 0.01
+    bias = 0.25
+
     #capacitive = 0.40
     beta = 250.00
       
@@ -256,17 +269,17 @@ print " %.3e < log|current| < %.3e" % (np.min(np.log(np.abs(array_current)))/np.
 
 array_current = np.log(np.abs( array_current ) + 1e-20) / np.log( 10.00 )
 
-[mesh_bias, mesh_param] = np.meshgrid(
-    biaswindow,
-    param_space
+[mesh_param, mesh_bias] = np.meshgrid(
+    param_space,
+    biaswindow
 )
  
 mesh_current = griddata(
-    array_bias,
     array_param,
+    array_bias,
     array_current,
-    mesh_bias,
     mesh_param,
+    mesh_bias,
     interp='linear')
 
 tick_max = np.max( array_current)
@@ -281,7 +294,7 @@ plt.yticks(fontsize=30)
      
 color_levels = MaxNLocator(nbins=tick_num).tick_values(tick_min, tick_max) 
 
-cf = ax.contourf(mesh_bias, mesh_param, mesh_current, cmap=cmap, levels=color_levels)
+cf = ax.contourf(mesh_param, mesh_bias, mesh_current, cmap=cmap, levels=color_levels)
 cb = fig.colorbar(cf, ax=ax, shrink=0.9, pad=0.15)    
 
 for t in cb.ax.get_yticklabels():
@@ -291,22 +304,22 @@ plt.rc('font', family='serif')
 
 ax.set_axis_bgcolor('black'); 
 
-ax.set_xlabel( "Bias $V$" ,fontsize=30);
+ax.set_ylabel( "Bias $V$" ,fontsize=30);
 if param_type == 'e':
-    ax.set_ylabel( "Zero-bias Level $\\epsilon_0$",fontsize=30);
+    ax.set_xlabel( "Zero-bias Level $\\epsilon_0$",fontsize=30);
 elif param_type == 'U':
-    ax.set_ylabel( "Capacitive Interaction Strength $U$",fontsize=30);
+    ax.set_xlabel( "Capacitive Interaction Strength $U$",fontsize=30);
 elif param_type == 'a':
-    ax.set_ylabel( "Level-bias coupling constant $\\alpha$",fontsize=30);
+    ax.set_xlabel( "Level-bias coupling constant $\\alpha$",fontsize=30);
 elif param_type == 'b':
-    ax.set_ylabel( "Inverse Temperature $\\beta$",fontsize=30);
+    ax.set_xlabel( "Inverse Temperature $\\beta$",fontsize=30);
 elif param_type == 't':
-    ax.set_ylabel( "Tunnel coupling $\\tau$",fontsize=30);
+    ax.set_xlabel( "Tunnel coupling $\\tau$",fontsize=30);
 elif param_type == 'g':
-    ax.set_ylabel( "Lead-coupling strength$\\Gamma$",fontsize=30);
+    ax.set_xlabel( "Lead-coupling strength$\\Gamma$",fontsize=30);
 elif param_type == 'o':
-    ax.set_ylabel( "On-site interaction strength",fontsize=30);
-ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$,$\\xi=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive, ksi), fontsize=25, y=1.07) 
+    ax.set_xlabel( "On-site interaction strength",fontsize=30);
+ax.set_title( "$\\alpha=%.5f$, $\\tau=%.5f$, $\\Gamma=%.5f$, $\\epsilon_0=%.5f$, $\\beta=%.5f$, $U=%.5f$" % (alpha, tau, gamma, levels, beta, capacitive), fontsize=25, y=1.07) 
 
 
 ###

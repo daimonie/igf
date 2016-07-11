@@ -1,4 +1,4 @@
-import sys as sys
+import sys as sys 
 import numpy as np
 from paralleltask import *
 import scipy.interpolate as si
@@ -321,7 +321,7 @@ calculated_bias = results[:,0]
 calculated_current = results[:,1]/1e-9
 
 #######################################
-fig = plt.figure(figsize=(12, 10), dpi=1080)
+fig = plt.figure(figsize=(24, 20), dpi=1080)
 ax = fig.add_subplot(111)
 plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
@@ -380,7 +380,7 @@ plt.tick_params(which='both', width=2)
 plt.tick_params(which='major', length=20)
 plt.tick_params(which='minor', length=10)
 
-plt.savefig('fit_average.png')
+plt.savefig('fit_average.pdf')
 ###
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
