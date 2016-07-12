@@ -1,43 +1,42 @@
-#!/bin/bash
-#PBS -l nodes=1:ppn=20
-#PBS -e /qsub_out/faerror.txt
-#PBS -o /qsub_out/faoutput.txt
-cd $PBS_O_WORKDIR
-
-for m in 0 1 2
-do
-    for u in 0.20 0.30 0.50
-    do
-        for e in -0.0 -$u
-        do
-            for g in 0.001 0.01
-            do
-                for a in 0.4 0.75 
-                do
-                    for t in 0.010
-                    do
-                        if [[ ${m} -eq 2 ]]
-                        then
-                            for k in 1.0 10.0
-                            do
-                                for z in 1.0
-                                do
-                                    echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.pdf
-                                    python fit_average.py -c 20 -m $m -u $u -e $e -g $g -a $a -t $t
-                                    mv fit_average.pdf fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.pdf
-#                                     chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}_k${k}_z${z}.pdf
-                                done
-                            done
-                        else
-                            echo fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.pdf
-                            python fit_average.py -c 20 -m $m -u $u -e $e -g $g -a $a -t $t
-                            mv fit_average.pdf fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.pdf
-#                             chromium fitavg/fit_average_m${m}_u${u}_e${e}_g${g}_a${a}_t${t}.pdf
-                        fi
-                    done
-                done
-            done
-        done
-    done
-done
-echo "Finished Fit Average" | mailx -s " Fit Average Finished" joskodeboer@gmail.com
+#!/bin/bash 
+ulimit -s 8192
+#spinfull 0
+python fit_average.py -c 4 -m 2 -u 0.30 -e -0.0 -g 0.01 -a 0.40 -t 0.01
+mv fit_average.pdf fitavg/fit_spinfull_0.pdf
+chromium fitavg/fit_spinfull_0.pdf
+#spinfull 1
+python fit_average.py -c 4 -m 2 -u 0.30 -e -.30 -g 0.01 -a 0.40 -t 0.01
+mv fit_average.pdf fitavg/fit_spinfull_1.pdf
+chromium fitavg/fit_spinfull_1.pdf
+#spinfull 2
+python fit_average.py -c 4 -m 2 -u 0.50 -e -0.0 -g 0.01 -a 0.40 -t 0.01
+mv fit_average.pdf fitavg/fit_spinfull_2.pdf
+chromium fitavg/fit_spinfull_2.pdf
+#spinfull 3
+python fit_average.py -c 4 -m 2 -u 0.50 -e -0.50 -g 0.01 -a 0.40 -t 0.01
+mv fit_average.pdf fitavg/fit_spinfull_3.pdf
+chromium fitavg/fit_spinfull_3.pdf
+#spinless 0
+python fit_average.py -c 4 -m 1 -u 0.20 -e -0.00 -g 0.01 -a 0.40 -t 0.01
+mv fit_average.pdf fitavg/fit_spinless_0.pdf
+chromium fitavg/fit_spinless_0.pdf
+#spinless  1
+python fit_average.py -c 4 -m 1 -u 0.20 -e -0.20 -g 0.001 -a 0.75 -t 0.01
+mv fit_average.pdf fitavg/fit_spinless_1.pdf
+chromium fitavg/fit_spinless_1.pdf
+#spinless  2
+python fit_average.py -c 4 -m 1 -u 0.20 -e -0.20 -g 0.01 -a 0.4 -t 0.01
+mv fit_average.pdf fitavg/fit_spinless_2.pdf
+chromium fitavg/fit_spinless_2.pdf
+#spinless  3
+python fit_average.py -c 4 -m 1 -u 0.20 -e -0.20 -g 0.01 -a 0.75 -t 0.01
+mv fit_average.pdf fitavg/fit_spinless_3.pdf
+chromium fitavg/fit_spinless_3.pdf
+#spinless  4
+python fit_average.py -c 4 -m 1 -u 0.30 -e -0.0 -g 0.01 -a 0.4 -t 0.01
+mv fit_average.pdf fitavg/fit_spinless_4.pdf
+chromium fitavg/fit_spinless_4.pdf
+#spinless  5
+python fit_average.py -c 4 -m 1 -u 0.30 -e -0.30 -g 0.01 -a 0.4 -t 0.01
+mv fit_average.pdf fitavg/fit_spinless_5.pdf
+chromium fitavg/fit_spinless_5.pdf 

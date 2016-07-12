@@ -320,10 +320,10 @@ calculated_bias = results[:,0]
 calculated_current = results[:,1]/1e-9
 
 #######################################
-fig = plt.figure(figsize=(24, 20), dpi=1080)
+fig = plt.figure(figsize=(20, 20), dpi=1080)
 ax = fig.add_subplot(111)
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 fig.subplots_adjust(left=0.30)
 
 title = "Dummy title"
@@ -345,28 +345,22 @@ elif mode == 1: #spinless
 elif mode == 2: #spinfull
     plt.plot(calculated_bias, calculated_current, 'b-', label='Interacting spinfull model') 
 #plt.legend()
-
-ax.set_title("Scaled by %.4e ." % make_same_scale)
-
-param_height = -np.max([np.abs(experimental).max(), np.abs(calculated_current).max()]) 
-#%ax.text( 0.05, 0.40 * param_height, "$\\tau=%.3f$" % tau , fontsize=30 )
-#%ax.text( 0.05, 0.52 * param_height, "$\\gamma=%.3f$" % gamma , fontsize=30 )
-#ax.text( 0.05, 0.64 * param_height, "$\\alpha=%.3f$" % alpha , fontsize=30 )
-##ax.text( 0.05, 0.76 * param_height, "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
-##ax.text( 0.05, 0.88 * param_height, "$U=%.3f$" % capacitive , fontsize=30 )
-
+if mode == 2:
+    ax.set_title("Scaled $I(V)$ by $%.2f$, $\\tau=%.3f, \\gamma=%.3f, \\alpha=%.3f, \\epsilon_0=%.3f, U=%.3f, \\xi = 1.0, \\zeta = 1.0$" % (make_same_scale, tau, gamma, alpha, levels, capacitive), fontsize=20)
+else:
+    ax.set_title("Scaled $I(V)$ by $%.2f$, $\\tau=%.3f, \\gamma=%.3f, \\alpha=%.3f, \\epsilon_0=%.3f, U=%.3f$" % (make_same_scale, tau, gamma, alpha, levels, capacitive), fontsize=20)
 
 plt.legend(bbox_to_anchor=(0., 1.04, 1., .102), loc=3,
-           ncol=2, mode="expand", borderaxespad=0.)
+           ncol=2, mode="expand", borderaxespad=0., fontsize=25)
 
  
-xlabel = "Bias $V_b$ [V]"
+xlabel = "Bias $V_b$ [eV]"
 ylabel = "Current $I(V_b)$  [nA] "
  
 plt.xlim([-0.25, 0.25])
 #plt.xlim([-1., 1.])
-plt.xlabel(xlabel, fontsize=20)
-plt.ylabel(ylabel, fontsize=20)
+plt.xlabel(xlabel, fontsize=25)
+plt.ylabel(ylabel, fontsize=25)
  
 plt.xticks(np.array(range(11))*0.05-0.25) 
 
