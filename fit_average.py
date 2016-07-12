@@ -11,7 +11,7 @@ import time
 from experiment import *
 ##matplotlib
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib import cm
