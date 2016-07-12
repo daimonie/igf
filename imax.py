@@ -42,15 +42,16 @@ plt.semilogy(capacitive[0:len(current_spinless_zero)], current_spinless_zero, 'r
 
 polyfitter = np.polyfit( capacitive, current_spinless_zero, 2)
 
-testfunc = lambda u, a, b, c, d, e: a * np.exp(-c*u) + b * np.exp(-d*u) + e
+#testfunc = lambda u, a, b, c, d, e: a * np.exp(-c*u) + b * np.exp(-d*u) + e
+testfunc = lambda u, a, b, c, d, e: a * 1.0 / ( b * u**2  + c * u  + d) + e
 
 popt, pcov =  curve_fit(testfunc, capacitive, current_spinless_zero)
 print "spinless", popt
-plt.semilogy(capacitive, testfunc(capacitive, *popt), 'r--', label='Spinless fit $ae^{-bu}+ce^{-du}+e$') 
+plt.semilogy(capacitive, testfunc(capacitive, *popt), 'r--', label='Spinless fit $a \\left(b u^2 + cu +d\\right)^{-1} + e$') 
 
 popt, pcov =  curve_fit(testfunc, capacitive, current_spinless_cap)
 print "spinless", popt
-plt.semilogy(capacitive, testfunc(capacitive, *popt), 'g--', label='Spinfull fit $ae^{-bu}+ce^{-du}+e$') 
+plt.semilogy(capacitive, testfunc(capacitive, *popt), 'g--', label='Spinless fit $a \\left(b u^2 + cu +d\\right)^{-1} + e$') 
 
 
 plt.semilogy(capacitive[0:len(current_spinless_cap)], current_spinless_cap, 'g^', label='Spinless $\\epsilon_0=-U$')       
