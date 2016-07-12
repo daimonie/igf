@@ -19,7 +19,7 @@ parser.add_argument(
     help='Onsite interaction',
     action='store',
     type = float,
-    default = 1.0
+    default = 0.5
 )   
 parser.add_argument(
     '-u',
@@ -27,7 +27,7 @@ parser.add_argument(
     help='Onsite interaction',
     action='store',
     type = float,
-    default = 0.5
+    default = 0.35
 )   
 
 
@@ -79,14 +79,14 @@ ylabel = "Energy [eV]"
 plt.rc('font', family='serif')
 
 plt.plot(levels, E_zero_zero_zero_zero, 'ro', label='$E_{0000}$')     
-plt.plot(levels, E_zero_zero_zero_one, 'rd', label='$E_{0001}$')     
+plt.plot(levels, E_zero_zero_zero_one, 'rd', label='$E_{0001}$', markersize=20)     
 plt.plot(levels, E_zero_zero_one_zero, 'r^', label='$E_{0010}$') 
 plt.plot(levels, E_zero_zero_one_one, 'rv', label='$E_{0011}$')         
 
-plt.plot(levels, E_zero_one_zero_zero, 'go', label='$E_{0100}$')     
-plt.plot(levels, E_zero_one_zero_one, 'gd', label='$E_{0101}$')     
-plt.plot(levels, E_zero_one_one_zero, 'g^', label='$E_{0110}$') 
-plt.plot(levels, E_zero_one_one_one, 'gv', label='$E_{0111}$')         
+plt.plot(levels, E_zero_one_zero_zero, 'go', label='$E_{0100}$', markersize=20)     
+plt.plot(levels, E_zero_one_zero_one, 'gd', label='$E_{0101}$', markersize=20)     
+plt.plot(levels, E_zero_one_one_zero, 'g^', label='$E_{0110}$', markersize=20) 
+plt.plot(levels, E_zero_one_one_one, 'gv', label='$E_{0111}$', markersize=20)         
 
 plt.plot(levels, E_one_zero_zero_zero, 'bo', label='$E_{1000}$')     
 plt.plot(levels, E_one_zero_zero_one, 'bd', label='$E_{1001}$')     
@@ -102,7 +102,10 @@ plt.plot(levels, E_one_one_one_one, 'mv', label='$E_{1111}$')
 plt.xlabel(xlabel, fontsize=15)
 plt.ylabel(ylabel, fontsize=15)
 
+plt.ylim([-0.6, -0.0])
+
 plt.title( "%s" % (title), fontsize=15)     
 plt.legend(loc='upper left')
 
 plt.savefig('perspin_distribution.pdf') 
+#plt.savefig('perspin_distribution.png') 
