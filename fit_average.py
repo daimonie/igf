@@ -11,7 +11,7 @@ import time
 from experiment import *
 ##matplotlib
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib import cm
@@ -40,63 +40,63 @@ parser.add_argument(
     '--alpha', 
     action='store',
     type = float,
-    default = .25
+    default = .75
 )    
 parser.add_argument(
     '-t',
     '--tau', 
     action='store',
     type = float,
-    default = .006
+    default = .01
 )    
 parser.add_argument(
     '-g',
     '--gamma', 
     action='store',
     type = float,
-    default = .010
+    default = .001
 )    
 parser.add_argument(
     '-e',
     '--epsilon', 
     action='store',
     type = float,
-    default = -.112
+    default = -.20
 )    
 parser.add_argument(
     '-u',
     '--capacitive', 
     action='store',
     type = float,
-    default = .117
+    default = .2
 )     
 parser.add_argument(
     '-z',
     '--zeta', 
     action='store',
     type = float,
-    default = .00
+    default = 1.00
 )    
 parser.add_argument(
     '-k',
     '--ksi', 
     action='store',
     type = float,
-    default = .00
+    default = 1.00
 )  
 parser.add_argument(
     '-c',
     '--cores', 
     action='store',
     type = int,
-    default = 4
+    default = 1
 )    
 parser.add_argument(
     '-m',
     '--mode', 
     action='store',
     type = int,
-    default = 0
+    default = 1
 )    
 
 args    = parser.parse_args()  
@@ -261,7 +261,6 @@ def calculate_spinless(arguments):
     realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
 
     spinless_hamiltonian = np.zeros((2,2))
-
     spinless_hamiltonian[0][0] = levels + 0.5 * alpha * bias
     spinless_hamiltonian[1][1] = levels - 0.5 * alpha * bias
 
@@ -331,6 +330,9 @@ title = "Dummy title"
 xlabel = ""
 ylabel = ""
 plt.rc('font', family='serif')
+
+
+print "Max current %2.3e" % np.max(np.abs(calculated_current))
 
 make_same_scale = np.max(experimental) / np.max(calculated_current)
 calculated_current *= make_same_scale

@@ -12,22 +12,14 @@ global_time_start = time.time()
 
 parser  = argparse.ArgumentParser(prog="perspin transport map",
   description = "Compare spinfull/spinless transmissions.")  
-  
-parser.add_argument(
-    '-k',
-    '--ksi',
-    help='Onsite interaction',
-    action='store',
-    type = float,
-    default = 1.0
-)   
+   
 parser.add_argument(
     '-u',
     '--capacitive',
     help='Onsite interaction',
     action='store',
     type = float,
-    default = 0.5
+    default = 0.35
 )   
 
 
@@ -40,11 +32,10 @@ epsilon = np.linspace(epsilon_left, epsilon_right, epsilon_res);
 alpha = 0.5
 tau = 0.02
 gamma = 0.01
-bias = 0.25
+bias = 1e-10
 
 args    = parser.parse_args()  
 capacitive = args.capacitive
-ksi = args.ksi
 
 levels = np.linspace(-0.5, -1e-6, 25)
 
