@@ -349,11 +349,11 @@ elif mode == 2: #spinfull
 ax.set_title("Scaled by %.4e ." % make_same_scale)
 
 param_height = -np.max([np.abs(experimental).max(), np.abs(calculated_current).max()]) 
-ax.text( 0.05, 0.40 * param_height, "$\\tau=%.3f$" % tau , fontsize=30 )
-ax.text( 0.05, 0.52 * param_height, "$\\gamma=%.3f$" % gamma , fontsize=30 )
-ax.text( 0.05, 0.64 * param_height, "$\\alpha=%.3f$" % alpha , fontsize=30 )
-ax.text( 0.05, 0.76 * param_height, "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
-ax.text( 0.05, 0.88 * param_height, "$U=%.3f$" % capacitive , fontsize=30 )
+#%ax.text( 0.05, 0.40 * param_height, "$\\tau=%.3f$" % tau , fontsize=30 )
+#%ax.text( 0.05, 0.52 * param_height, "$\\gamma=%.3f$" % gamma , fontsize=30 )
+#ax.text( 0.05, 0.64 * param_height, "$\\alpha=%.3f$" % alpha , fontsize=30 )
+##ax.text( 0.05, 0.76 * param_height, "$\\epsilon_0=%.3f$" % levels , fontsize=30 )
+##ax.text( 0.05, 0.88 * param_height, "$U=%.3f$" % capacitive , fontsize=30 )
 
 
 plt.legend(bbox_to_anchor=(0., 1.04, 1., .102), loc=3,
