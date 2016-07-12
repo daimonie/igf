@@ -104,7 +104,7 @@ sep = args.sep
 
 tau         = args.tau
 gamma       = args.gamma
-levels      = args.epsilon
+levels      = args.epsilon - 0.05
 alpha       = args.alpha
 capacitive  = args.capacitive 
 cores       = args.cores
