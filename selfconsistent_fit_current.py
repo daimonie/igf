@@ -182,10 +182,11 @@ mode = 1
 cores = 4
 
 #separation_array = range(638, 670)        
+#data_bias = np.zeros(( len(separation_array)-1, 404))
+#data_current = np.zeros(( len(separation_array)-1, 404))
 separation_array = range(650, 670)        
-        
-data_bias = np.zeros(( len(separation_array)-1, 404))
-data_current = np.zeros(( len(separation_array)-1, 404))
+data_bias = np.zeros(( len(separation_array), 404))
+data_current = np.zeros(( len(separation_array), 404))
 
 i = 0          
 for sep in separation_array:

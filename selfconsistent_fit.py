@@ -10,13 +10,24 @@ from scipy.constants import physical_constants as pc
 ### parameters
 tolerance = 1e-3
 
-bias_res = 50
+#bias_res = 50
+#biaswindow = np.linspace( -0.5, 0.5, bias_res )
+
+biaswindow = np.array([-0.50, -0.40, -0.30, -0.20, -0.10, 0.00, 0.10, 0.20, 0.30, 0.40, 0.50])
+bias_res = len(biaswindow)
 
 
-biaswindow = np.linspace( -0.5, 0.5, bias_res )
 old_chances = np.zeros( (4, bias_res ))
 new_chances = np.zeros( (4, bias_res ))
 biasnum = 0
+
+#parameters from fit_0 
+tau = 0.010
+gamma = 0.010
+alpha = 0.40
+capacitive = 0.300
+levels = -capacitive -1e-4
+beta = 250.0
 
 for bias in biaswindow:
     realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
@@ -24,13 +35,6 @@ for bias in biaswindow:
 
     epsilon_window = np.linspace(-1.0, 1.0, epsilon_res)
 
-    #parameters from fit_0
-    tau = 0.010
-    gamma = 0.010
-    alpha = 0.40
-    levels = -0.200 -1e-4
-    capacitive = 0.200
-    beta = 250. #* 5./300.
 
 
     hamiltonian = np.zeros((2,2))
@@ -200,8 +204,11 @@ plt.tick_params(which='both', width=2)
 plt.tick_params(which='major', length=20)
 plt.tick_params(which='minor', length=10)
 
-plt.xticks([-.5, -.25, 0.00, .25, .50])
-plt.yticks([0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00])
+if len(biaswindow) < 10:
+    plt.xticks([-.5, -.25, 0.00, .25, .50])
+else:
+    plt.xticks(biaswindow)
+plt.yticks([-0.10, 0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.10])
 
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
