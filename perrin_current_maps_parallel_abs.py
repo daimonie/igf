@@ -61,14 +61,14 @@ param_type = args.param
 capacitive = args.capacitive
 
 ###
-bias_left = -2.
-bias_right = 2.
+bias_left = -.5
+bias_right = .5
 bias_res = 100
  
 
-param_type = 'e'
-param_left = -0.5
-param_right= -0.5
+param_type = 'g'
+param_left = 0.001
+param_right= capacitive
 param_res = 100
 
 #param_type = 'U'
@@ -202,11 +202,12 @@ else:
     manager = taskManager( cores, ana_current ) 
 #print "Using analytic current..."
 for param in param_space: 
-    alpha = 0.75
+    alpha = 0.40
     tau = 0.02
     gamma = 0.01
     bias = 0.25
-
+    levels = -0.00
+    levels = -capacitive
     #capacitive = 0.40
     beta = 250.00
       
@@ -314,7 +315,7 @@ elif param_type == 'a':
 elif param_type == 'b':
     ax.set_xlabel( "Inverse Temperature $\\beta$",fontsize=30);
 elif param_type == 't':
-    ax.set_xlabel( "Tunnel coupling $\\tau$",fontsize=30);
+    ax.set_xlabel( "Tunnelling coupling $\\tau$",fontsize=30);
 elif param_type == 'g':
     ax.set_xlabel( "Lead-coupling strength$\\Gamma$",fontsize=30);
 elif param_type == 'o':

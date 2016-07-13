@@ -29,7 +29,9 @@ class igfwl(object):
             self.beta = param_beta
     
             self.cutoff_chance = 0.0001
-            
+            self.external_distribution = False
+            self.external_distribution_array = self.distribution()
+            self.external_distribution = True
     def singleparticlebackground(self, background):
         """This gives us the single-particle Green's function with some background."""
         
@@ -61,28 +63,37 @@ class igfwl(object):
         
         final_ket = np.array( [(2**i==number&2**i)*1.0 for i in range(0,self.dim)] )
         return final_ket 
+    def set_distribution(self, P):
+        self.external_distribution = True
+        self.external_distribution_array = P
+        
+        #print "new distribution set. ", P
     def distribution(self):
         """Sets the boltzmann distribution function and generates the density-matrix."""
         
-        energy_vector = []
-        superset = self.generate_superset(0) 
-        
-        for i in superset:
-            state           = self.ket(i)
+        #external_distribution serves both the purpose of external setting of distribution and the caching of distribution()
+        if self.external_distribution:
+            return self.external_distribution_array;
+        else:
+            energy_vector = []
+            superset = self.generate_superset(0) 
             
-            norm_squared    = np.dot(state.T, state)
-            
-            if norm_squared > 0: #zero is appended at the end
-                energy          = np.dot(state.T, np.dot( self.epsilon, state))
-                interaction     = np.dot(state.T, np.dot( self.u, state))/2.0 #divide by two. Otherwise, <l r| U |l r > =  U_LR + U_RL = 2U
-                #print state, np.dot(self.u, state) 
-                #print interaction
-                energy_vector.append( energy + interaction )
+            for i in superset:
+                state           = self.ket(i)
                 
-        energy_vector.insert(0, 0.0) 
-        probability = np.exp( np.multiply(-self.beta, energy_vector)) 
-        probability /= probability.sum() 
-        return probability
+                norm_squared    = np.dot(state.T, state)
+                
+                if norm_squared > 0: #zero is appended at the end
+                    energy          = np.dot(state.T, np.dot( self.epsilon, state))
+                    interaction     = np.dot(state.T, np.dot( self.u, state))/2.0 #divide by two. Otherwise, <l r| U |l r > =  U_LR + U_RL = 2U
+                    #print state, np.dot(self.u, state) 
+                    #print interaction
+                    energy_vector.append( energy + interaction )
+                    
+            energy_vector.insert(0, 0.0) 
+            probability = np.exp( np.multiply(-self.beta, energy_vector)) 
+            probability /= probability.sum() 
+            return probability
     
     def transport_channel_ij(self, i, j, chances, epsilon):
         state_i = self.ket( i ) 

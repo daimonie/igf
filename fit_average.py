@@ -14,8 +14,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
-from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib import cm
 from scipy.constants import physical_constants as pc
 ###
 global_time_start = time.time()
