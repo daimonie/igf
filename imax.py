@@ -28,9 +28,9 @@ current_spinless_cap = np.array([6.382e2, 1.238e2, 5.45e1, 3.518e1, 2.809e1, 2.4
 
 
 ##plotting
-plt.figure(figsize=(10, 10), dpi=1080)
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
+plt.figure(figsize=(15, 10), dpi=1080)
+plt.xticks(fontsize=30)
+plt.yticks(fontsize=30)
  
  
 #title = " $\\alpha=%.3f$, $V=%.3f$, $U=%.3f$" % (alpha, bias, capacitive)
@@ -55,12 +55,12 @@ plt.semilogy(capacitive, testfunc(capacitive, *popt), 'g--', label='Spinfull fit
 
 plt.semilogy(capacitive[0:len(current_spinless_cap)], current_spinless_cap, 'g^', label='Spinless $\\epsilon_0=-U$')       
 
-plt.xticks(capacitive)
+plt.xticks( np.array(range(6)) * 0.10)
 
-plt.xlabel(xlabel, fontsize=15)
-plt.ylabel(ylabel, fontsize=15)
+plt.xlabel(xlabel, fontsize=30)
+plt.ylabel(ylabel, fontsize=30)
 
-#plt.title( "%s" % (title), fontsize=15)     
-plt.legend(loc='upper right')
+#plt.title( "%s" % (title), fontsize=30)     
+plt.legend(loc='upper right', fontsize=30)
 
 plt.savefig('imax.pdf') 

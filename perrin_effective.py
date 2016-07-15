@@ -15,7 +15,7 @@ alpha = 0.74
 tau = 0.0241
 gamma = 0.031
 levels = -0.005
-bias = 0.0
+bias = 0.5
 
 
 #levels set to zero-
@@ -128,9 +128,9 @@ for capacitive in np.arange(0, 0.5, 0.01):
     
     
     
-plt.figure(figsize=(10, 10), dpi=1080)
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
+plt.figure(figsize=(15, 10), dpi=1080)
+plt.xticks(fontsize=30)
+plt.yticks(fontsize=30)
  
  
 title = "Effective parameters. $\\beta=%.3f$, $V=%.3f$, $\\epsilon_0=%.3f$, $\\Gamma=%.3f$, $\\tau=%.3f$,$\\alpha=%.3f$, " %(beta,
@@ -150,10 +150,9 @@ plt.plot(data_capacitive, data_levels, 'go', label='effective $\\epsilon_0$')
 plt.plot(data_capacitive, data_tau, 'ro', label='effective $\\tau$')  
 
 
-plt.xlabel(xlabel, fontsize=15)
-plt.ylabel(ylabel, fontsize=15)
+plt.xlabel(xlabel, fontsize=30)
+plt.ylabel(ylabel, fontsize=30)
 
-plt.title( "%s" % (title), fontsize=15)     
-plt.legend(loc='upper left')
+plt.legend(loc='upper left', fontsize=30)
 
 plt.savefig('perrin_effective.pdf') 
