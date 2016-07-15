@@ -54,14 +54,14 @@ parser.add_argument(
     '--gamma', 
     action='store',
     type = float,
-    default = .001
+    default = .01
 )    
 parser.add_argument(
     '-e',
     '--epsilon', 
     action='store',
     type = float,
-    default = -.20
+    default = -0.21
 )    
 parser.add_argument(
     '-u',
@@ -89,7 +89,7 @@ parser.add_argument(
     '--cores', 
     action='store',
     type = int,
-    default = 1
+    default = 4
 )    
 parser.add_argument(
     '-m',

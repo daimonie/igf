@@ -111,9 +111,9 @@ if plotting_mode == 0 or plotting_mode == 2:
     #plt.plot(epsilon, transmission * scaler, 'g-', linewidth=2, label="Transmission $T(\\epsilon)$")   
     
     if decorative:
-        plt.fill(epsilon, transmission * scaler, 'g-', linewidth=2, alpha=0.9, label="Transmission $T(\\epsilon)$")   
+        plt.fill(epsilon, transmission * scaler, 'g-', linewidth=2, alpha=0.9, label="Interacting transmission $T(\\epsilon)$")   
     else:
-        plt.plot(epsilon, transmission * scaler, 'g-', linewidth=2, label="Transmission $T(\\epsilon)$")   
+        plt.plot(epsilon, transmission * scaler, 'g-', linewidth=2, label="Interacting transmission $T(\\epsilon)$")   
     minimum = 0.00
     maximum = transmission.max()
         
@@ -132,6 +132,52 @@ elif plotting_mode == 1 or plotting_mode == 3:
     title = "S"
     xlabel = "Energy $\\epsilon$"
     ylabel = "Spectral"
+    
+###################################### plot non interacting
+            
+hamiltonian = np.zeros((2,2))
+
+hamiltonian[0][0] = levels + 0.5 * alpha * bias
+hamiltonian[1][1] = levels - 0.5 * alpha * bias
+
+tunnel = np.zeros((2,2))
+tunnel[0][1] = -tau
+tunnel[1][0] = -tau
+
+#change these numbers based on visual inspection
+epsilon_left = -0.50
+epsilon_right = 1.00
+epsilon_res = 10000
+
+interaction = np.zeros((2,2))
+interaction[0][1] = 0
+interaction[1][0] = 0
+
+
+gamma_left = np.zeros((2,2))
+gamma_left[0][0] = gamma
+
+gamma_right = np.zeros((2,2))
+gamma_right[1][1] = gamma
+
+beta = 250.0*1
+
+
+
+calculation = igfwl(
+    hamiltonian, 
+    tunnel,
+    interaction, 
+    gamma_left,
+    gamma_right, 
+    beta
+)
+ 
+
+if plotting_mode == 0 or plotting_mode == 2:
+    transmission = calculation.full_transmission(epsilon)
+    plt.plot(epsilon, transmission * scaler, 'r--', linewidth=3, label="Non-Interacting transmission $T(\\epsilon)$")   
+######################################
 plt.xlim([-0.50, 1.00])
 plt.ylim([-0.001/4.0, 0.0055])
 
@@ -181,12 +227,9 @@ if decorative:
     plt.plot(values, height, 'kd', label='Eigenvalues ($H_0(V) + \\tau$)', markersize=10) 
 else:
     plt.plot(values, height, 'ko', label='Eigenvalues ($H_0(V) + \\tau$)', linewidth=2) 
-plt.legend()
+plt.legend(fontsize=30)
 
-if plotting_mode == 2 or plotting_mode == 3:
-    plt.savefig('perrin_two_site.svg')
-else:    
-    plt.show()
+plt.savefig('perrin_two_site.pdf') 
 
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
