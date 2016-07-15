@@ -10,15 +10,26 @@ from paralleltask import *
 import scipy.interpolate as si
 from scipy.optimize import minimize
 from scipy.constants import physical_constants as pc
+import argparse as argparse  
 ### parameters
 import time
 global_time_start = time.time()
-tolerance = 1e-4
+tolerance = 1e-6
 
-bias_res = 50
+bias_res = 40
+
+biaswindow = []
+for bias in np.linspace( -0.25, -0.07, 10 ):
+    biaswindow.append(bias)
+for bias in np.linspace( -0.07, 0.07, bias_res ):
+    biaswindow.append(bias)
+for bias in np.linspace( -0.07, 0.25, 10 ):
+    biaswindow.append(bias)
+bias_res = len(biaswindow)
+biaswindow = np.array(biaswindow)
 
 
-biaswindow = np.linspace( -0.5, 0.5, bias_res )
+
 old_chances = np.zeros( (4, bias_res ))
 new_chances = np.zeros( (4, bias_res ))
 biasnum = 0
@@ -28,15 +39,72 @@ epsilon_res = 100
 
 epsilon_window = np.linspace(-1.0, 1.0, epsilon_res)
 
-#parameters from fit_0
-tau = 0.010
-gamma = 0.010
-alpha = 0.40
-capacitive = 0.300
-levels = -capacitive -1e-4
-
-#beta = 1.0 / ( 4 * pc["Boltzmann constant in eV/K"][0]) ~2900
-beta = 250
+#parameters from fit_0 are default
+default_tau = 0.010
+default_gamma = 0.010
+default_alpha = 0.40
+default_capacitive = 0.300
+default_levels = -default_capacitive -1e-4 
+default_beta = 250
+#parameter parser
+parser  = argparse.ArgumentParser(prog="current map parallel",
+  description = "Self consistent current calculation, also plots experimental current.")  
+ 
+parser.add_argument(
+    '-t',
+    '--tau',
+    help='Tunnelling strength',
+    action='store',
+    type = float,
+    default = default_tau
+)   
+parser.add_argument(
+    '-gt',
+    '--gamma',
+    help='Molecule-lead coupling strength',
+    action='store',
+    type = float,
+    default = default_gamma
+)   
+parser.add_argument(
+    '-at',
+    '--alpha',
+    help='Bias-level coupling',
+    action='store',
+    type = float,
+    default = default_alpha
+)   
+parser.add_argument(
+    '-u',
+    '--capacitive',
+    help='Capacitive interaction strength',
+    action='store',
+    type = float,
+    default = default_capacitive
+)   
+parser.add_argument(
+    '-e',
+    '--epsilon',
+    help='Zero-bias level',
+    action='store',
+    type = float,
+    default = default_levels
+)   
+parser.add_argument(
+    '-b',
+    '--beta',
+    help='inverse temperature',
+    action='store',
+    type = float,
+    default = default_beta
+)   
+args    = parser.parse_args() 
+tau = args.tau
+gamma = args.gamma
+alpha = args.alpha
+capacitive = args.capacitive
+levels = args.epsilon
+beta = args.beta 
 
 for bias in biaswindow:
     hamiltonian = np.zeros((2,2))
@@ -147,7 +215,7 @@ for bias in biaswindow:
     while difference > tolerance: 
         new_number_vector = lesser_number_vector(P) 
         
-        print "number\t%d\t%.4f\t%.4f" % (generation, new_number_vector[0], new_number_vector[1])
+        print "number\t%d\t%.4e\t%.4e" % (generation, new_number_vector[0], new_number_vector[1])
         
         number_length = lambda P: np.sum( np.square( np.dot(K, np.abs(P)) - new_number_vector))
         
@@ -277,8 +345,8 @@ calculated_current = results[:,1]/1e-9
 #######################################
 fig = plt.figure(figsize=(20, 20), dpi=1080)
 ax = fig.add_subplot(111)
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
+plt.xticks(fontsize=25)
+plt.yticks(fontsize=25)
 fig.subplots_adjust(left=0.30)
 
 title = "Dummy title"
@@ -293,7 +361,7 @@ make_same_scale = np.max(experimental) / np.max(calculated_current)
 calculated_current *= make_same_scale
 
 plt.plot(bias, experimental, 'm-', label='Experimental Average')  
-plt.plot(calculated_bias, calculated_current, 'rd', label='SCI spinless two-site model', markersize=20)  
+plt.plot(calculated_bias, calculated_current, 'rd', label='SCI spinless two-site model', markersize=12)  
  
 ax.set_title("Scaled $I(V)$ by $%.2f$, $\\tau=%.3f, \\gamma=%.3f, \\alpha=%.3f, \\epsilon_0=%.3f, U=%.3f$" % (make_same_scale, tau, gamma, alpha, levels, capacitive), fontsize=20)
 
@@ -306,8 +374,8 @@ ylabel = "Current $I(V_b)$  [nA] "
  
 plt.xlim([-0.25, 0.25])
 #plt.xlim([-1., 1.])
-plt.xlabel(xlabel, fontsize=25)
-plt.ylabel(ylabel, fontsize=25)
+plt.xlabel(xlabel, fontsize=30)
+plt.ylabel(ylabel, fontsize=30)
  
 plt.xticks(np.array(range(11))*0.05-0.25) 
 
